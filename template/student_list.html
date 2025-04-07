@@ -1,8 +1,9 @@
 {% extends 'base.html' %}
-{% block body %}
-<div class="card">
-    <input type="text" id="searchInput" class="search-box" placeholder="Search students...">
-    <table class="student-table" id="studentTable">
+
+{% block content %}
+<div class="card p-4" style="background-color: #2b2b2b; border: 1px solid #444;">
+    <input type="text" id="searchInput" class="form-control mb-3" placeholder="Search students..." style="background-color: #3a3a3a; color: #fff; border: 1px solid #555;">
+    <table class="table table-striped" id="studentTable" style="color: #f1f1f1;">
         <thead>
             <tr>
                 <th>Name</th>
@@ -12,12 +13,13 @@
         </thead>
         <tbody>
             {% for student in students %}
-            <tr>
+            <tr style="background-color: #2d2d2d;">
                 <td>{{ student.name }}</td>
                 <td>{{ student.USN }}</td>
-                
                 <td>
-                    <button class="info-button" onclick="showModal('{{ student.id }}')">Info</button>
+                    <button class="btn btn-sm btn-info" onclick="showModal('{{ student.name }}', '{{ student.USN }}', '{{ student.status }}', '{{ student.contact }}', '{{ student.units }}')" style="background-color: #f39c12; border-color: #f39c12;">
+                        Info
+                    </button>
                 </td>
             </tr>
             {% endfor %}
@@ -26,53 +28,57 @@
 </div>
 
 <!-- Modal -->
-<div id="studentModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <h2>Student Information</h2>
-        <div id="studentInfo">
-            <p><strong>Name:</strong> <span id="modalName"></span></p>
-            <p><strong>USN/ID:</strong> <span id="modalUsn"></span></p>
-            <p><strong>Status:</strong> <span id="modalStatus"></span></p>
-            <p><strong>Contact Number:</strong> <span id="modalContact"></span></p>
-            <p><strong>Current Units:</strong> <span id="modalUnits"></span></p>
+<div id="studentModal" class="modal" tabindex="-1" style="display:none; background-color: rgba(0,0,0,0.7); position:fixed; top:0; left:0; width:100%; height:100%; padding: 20px;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content p-3" style="background-color: #333; color: #fff;">
+            <div class="modal-header" style="border-bottom: 1px solid #444;">
+                <h5 class="modal-title">Student Information</h5>
+                <button type="button" class="btn-close" onclick="closeModal()" style="color: #f8f9fa;"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Name:</strong> <span id="modalName"></span></p>
+                <p><strong>USN/ID:</strong> <span id="modalUsn"></span></p>
+                <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+                <p><strong>Contact Number:</strong> <span id="modalContact"></span></p>
+                <p><strong>Current Units:</strong> <span id="modalUnits"></span></p>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-document.getElementById('searchInput').addEventListener('keyup', function() {
+// Search functionality
+document.getElementById('searchInput').addEventListener('keyup', function () {
     let input = this.value.toLowerCase();
-    let rows = document.getElementById('studentTable').getElementsByTagName('tr');
+    let rows = document.querySelectorAll('#studentTable tbody tr');
 
-    for (let i = 1; i < rows.length; i++) {
-        let name = rows[i].getElementsByTagName('td')[0].textContent.toLowerCase();
-        let usn = rows[i].getElementsByTagName('td')[1].textContent.toLowerCase();
-        if (name.includes(input) || usn.includes(input)) {
-            rows[i].style.display = '';
-        } else {
-            rows[i].style.display = 'none';
-        }
-    }
+    rows.forEach(row => {
+        let name = row.cells[0].textContent.toLowerCase();
+        let usn = row.cells[1].textContent.toLowerCase();
+        row.style.display = (name.includes(input) || usn.includes(input)) ? '' : 'none';
+    });
 });
 
-function showModal(studentId) {
-    // Replace this with actual AJAX call to get student details
-    const modal = document.getElementById('studentModal');
-    modal.style.display = 'block';
-    // Populate modal with student data
-    // You'll need to implement this part based on your backend
+// Show modal and populate with data
+function showModal(name, usn, status, contact, units) {
+    document.getElementById('modalName').textContent = name;
+    document.getElementById('modalUsn').textContent = usn;
+    document.getElementById('modalStatus').textContent = status;
+    document.getElementById('modalContact').textContent = contact;
+    document.getElementById('modalUnits').textContent = units;
+
+    document.getElementById('studentModal').style.display = 'block';
 }
 
+// Close modal
 function closeModal() {
-    const modal = document.getElementById('studentModal');
-    modal.style.display = 'none';
+    document.getElementById('studentModal').style.display = 'none';
 }
 
 // Close modal when clicking outside
-window.onclick = function(event) {
+window.onclick = function (event) {
     const modal = document.getElementById('studentModal');
-    if (event.target == modal) {
+    if (event.target === modal) {
         modal.style.display = 'none';
     }
 }
