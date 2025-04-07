@@ -43,39 +43,54 @@ def logout():
     session.pop('admin_id', None)
     session.pop('username', None)
     session.pop('usertype', None)
-    return redirect(url_for('login'))
+    return redirect(url_for('login'))   
 
 # Register Route
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     message = ''
+    accounts = []
+
     if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
+        name = request.form['name']
         username = request.form['username']
         password = request.form['password']
         usertype = request.form['instructor']
-        
+
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM admin WHERE username = %s', (username,))
         account = cursor.fetchone()
-        
+
         if account:
             message = 'Account already exists!'
         elif not username or not password:
             message = 'Please fill out the form!'
         else:
-            cursor.execute('INSERT INTO admin (username, password, usertype) VALUES (%s, %s, %s)', (username, password, usertype))
+            cursor.execute('INSERT INTO admin (name, username, password, usertype) VALUES (%s, %s, %s, %s)',(name, username, password, usertype))
             mysql.connection.commit()
             message = 'Account registered successfully!'
-            
         cursor.close()
-    return render_template('register.html', message=message)
+
+    # Fetch all instructors
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('SELECT * FROM admin WHERE usertype = "instructor" ORDER BY date_created DESC')
+    accounts = cursor.fetchall()
+    cursor.close()
+
+    return render_template('register.html', message=message, accounts=accounts)
+
 
 @app.route('/admin_dashboard')
 def admin_dashboard():
     if 'usertype' in session and session['usertype'] == 'admin':
-        
-        return render_template('admin_dashboard.html')
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute("SELECT * FROM subject")
+        subjects = cursor.fetchall()
+        cursor.close()
+        return render_template('admin_dashboard.html', subjects=subjects)
     return redirect(url_for('login'))
+
+
 
 @app.route('/student_dashboard')
 def student_dashboard():
