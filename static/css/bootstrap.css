@@ -1,0 +1,22 @@
+/* Main import file for all CSS */
+
+/* Core styles */
+@import 'bootstrap.css';
+@import 'global-background.css';
+@import 'main.css';
+
+/* Dashboard styles */
+@import 'admin_dashboard.css';
+@import 'dashboard.css';
+@import 'student_dashboard.css';
+
+/* Authentication styles */
+@import 'login.css';
+@import 'register.css';
+
+/* Lists and data display */
+@import 'student_list.css';
+@import 'student_dashboard.css';
+@import 'register.css';
+@import 'login.css';
+@import 'admin_dashboard.css';

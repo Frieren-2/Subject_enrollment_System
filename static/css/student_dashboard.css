@@ -1,0 +1,65 @@
+.glass-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    }
+
+    .btn-glass {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        transition: all 0.3s ease;
+    }
+
+    .btn-glass:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .table-modern {
+        border-spacing: 0 8px;
+        border-collapse: separate;
+        margin-top: 10px; /* Adjust the table closer to the top */
+    }
+
+    .table-row-hover {
+        transition: all 0.3s ease;
+    }
+
+    .table-row-hover:hover {
+        transform: scale(1.01);
+        background: rgba(255, 255, 255, 0.05);
+        box-shadow: 0 0 20px rgba(108, 99, 255, 0.2);
+    }
+
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .status-approved {
+        background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+        color: white;
+    }
+
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+    }
+
+    .card {
+        margin-top: 20px; /* Add spacing between sections */
+    }

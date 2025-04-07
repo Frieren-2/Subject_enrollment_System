@@ -1,0 +1,135 @@
+{% extends 'base.html' %} {% block body %}
+<div class="main-content">
+  <div class="container-fluid">
+    <div class="content-wrapper">
+      <!-- Subject List Section -->
+      <div class="card">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
+          <h5 class="mb-0">Subject List</h5>
+          <span class="badge bg-light text-dark">{{ subjects|length }} Total</span>
+        </div>
+        <div class="card-body px-0">  <!-- Remove horizontal padding -->
+          <!-- Filter Controls -->
+          <div class="px-3 mb-4">  <!-- Add padding to filters only -->
+            <div class="row g-3">
+              <div class="row mt-3">
+              <div class="col-md-12">
+                <input type="text" id="subjectSearch" class="form-control" placeholder="Search by Subject Code or Name">
+              </div>
+            </div>
+              <div class="col-md-4">
+                <select class="form-select" id="courseFilter">
+                  <option value="">All Courses</option>
+                  <option value="BSCS">BS Computer Science</option>
+                  <option value="BSIT">BS Information Technology</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <select class="form-select" id="yearFilter">
+                  <option value="">All Years</option>
+                  <option value="First Year">First Year</option>
+                  <option value="Second Year">Second Year</option>
+                  <option value="Third Year">Third Year</option>
+                  <option value="Fourth Year">Fourth Year</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <select class="form-select" id="semesterFilter">
+                  <option value="">All Semesters</option>
+                  <option value="1">First Semester</option>
+                  <option value="2">Second Semester</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Subjects Table -->
+          <div class="table-responsive">
+            <table class="table table-striped table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th>Subject Code</th>
+                  <th>Subject Name</th>
+                  <th>Course</th>
+                  <th>Year Level</th>
+                  <th>Semester</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for subject in subjects %}
+                <tr>
+                  <td>{{ subject.Subject_Code }}</td>
+                  <td>{{ subject.Subject_Name }}</td>
+                  <td>{{ subject.Course_Name }}</td>
+                  <td>{{ subject.StudentYear }}</td>
+                  <td>
+                    {% if subject.Semester == 1 %}First{% endif %}
+                    {% if subject.Semester == 2 %}Second{% endif %}
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button type="button" class="btn btn-warning" 
+                              data-bs-toggle="modal" 
+                              data-bs-target="#editSubject{{ subject.Subject_ID }}">
+                        <i class="bx bx-edit"></i>
+                      </button>
+                      <form action="{{ url_for('delete_subject', subject_id=subject.Subject_ID) }}" 
+                            method="POST" 
+                            style="display: inline">
+                        <button type="submit" 
+                                class="btn btn-danger" 
+                                onclick="return confirm('Are you sure you want to delete this subject?')">
+                          <i class="bx bx-trash"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const courseFilter = document.getElementById('courseFilter');
+    const yearFilter = document.getElementById('yearFilter');
+    const semesterFilter = document.getElementById('semesterFilter');
+    const subjectSearch = document.getElementById('subjectSearch');
+    
+    function filterTable() {
+        const course = courseFilter.value;
+        const year = yearFilter.value;
+        const semester = semesterFilter.value;
+        const searchQuery = subjectSearch.value.toLowerCase();
+        
+        const rows = document.querySelectorAll('tbody tr');
+        
+        rows.forEach(row => {
+            const courseMatch = !course || row.cells[2].textContent.includes(course);
+            const yearMatch = !year || row.cells[3].textContent.includes(year);
+            const semesterMatch = !semester || row.cells[4].textContent.includes(
+                semester === '1' ? 'First' : 'Second'
+            );
+            const searchMatch = !searchQuery || 
+                row.cells[0].textContent.toLowerCase().includes(searchQuery) || 
+                row.cells[1].textContent.toLowerCase().includes(searchQuery);
+            
+            row.style.display = courseMatch && yearMatch && semesterMatch && searchMatch ? '' : 'none';
+        });
+    }
+    
+    courseFilter.addEventListener('change', filterTable);
+    yearFilter.addEventListener('change', filterTable);
+    semesterFilter.addEventListener('change', filterTable);
+    subjectSearch.addEventListener('input', filterTable);
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,157 @@
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Variables */
+:root {
+    --primary: #4361ee;
+    --secondary: #2ecc71;
+    --danger: #e74c3c;
+    --warning: #f1c40f;
+    --info: #3498db;
+    --dark: #1a1a1a;
+    --light: #f5f6fa;
+    --sidebar-width: 280px;
+    --header-height: 60px;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+/* Base */
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #36383b;
+    display: flex;
+    min-height: 100vh;
+    font-size: 14px;
+}
+
+/* Sidebar */
+.sidebar {
+    width: var(--sidebar-width);
+    background: var(--dark);
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    padding: 1.5rem;
+    color: white;
+    overflow-y: auto;
+}
+
+.sidebar-header {
+    text-align: center;
+    padding: 1rem 0;
+    margin-bottom: 2rem;
+}
+
+.logo {
+    width: 60px;
+    height: auto;
+    margin-bottom: 0.5rem;
+}
+
+.sidebar-title {
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.nav-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.8rem 1.2rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    border-radius: 6px;
+    transition: var(--transition);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.nav-link:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.nav-link.active {
+    background: var(--info);
+    color: white;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Main Content */
+.main-content {
+    margin-left: var(--sidebar-width);
+    padding: 1.5rem;
+    width: calc(100% - var(--sidebar-width));
+}
+
+/* Table Styling */
+.table-container {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    margin-bottom: 1rem;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    margin-top: 10px; /* Adjust the table closer to the top */
+}
+
+.table {
+    min-width: 800px;
+    width: 100%;
+    margin-bottom: 0;
+}
+
+th, td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+th {
+    background: #f8f9fa;
+    font-weight: 600;
+}
+
+tr:hover {
+    background: #f8f9fa;
+}
+
+/* Button Highlight on Click */
+.btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: var(--transition);
+}
+
+.btn:active {
+    background: var(--info);
+    color: white;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+}
+
+.card {
+    margin-top: 20px; /* Add spacing between sections */
+}

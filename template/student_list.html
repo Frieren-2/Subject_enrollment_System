@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block body %}
+<div class="card">
+    <input type="text" id="searchInput" class="search-box" placeholder="Search students...">
+    <table class="student-table" id="studentTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>USN/ID</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in students %}
+            <tr>
+                <td>{{ student.name }}</td>
+                <td>{{ student.USN }}</td>
+                
+                <td>
+                    <button class="info-button" onclick="showModal('{{ student.id }}')">Info</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal -->
+<div id="studentModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Student Information</h2>
+        <div id="studentInfo">
+            <p><strong>Name:</strong> <span id="modalName"></span></p>
+            <p><strong>USN/ID:</strong> <span id="modalUsn"></span></p>
+            <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+            <p><strong>Contact Number:</strong> <span id="modalContact"></span></p>
+            <p><strong>Current Units:</strong> <span id="modalUnits"></span></p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('searchInput').addEventListener('keyup', function() {
+    let input = this.value.toLowerCase();
+    let rows = document.getElementById('studentTable').getElementsByTagName('tr');
+
+    for (let i = 1; i < rows.length; i++) {
+        let name = rows[i].getElementsByTagName('td')[0].textContent.toLowerCase();
+        let usn = rows[i].getElementsByTagName('td')[1].textContent.toLowerCase();
+        if (name.includes(input) || usn.includes(input)) {
+            rows[i].style.display = '';
+        } else {
+            rows[i].style.display = 'none';
+        }
+    }
+});
+
+function showModal(studentId) {
+    // Replace this with actual AJAX call to get student details
+    const modal = document.getElementById('studentModal');
+    modal.style.display = 'block';
+    // Populate modal with student data
+    // You'll need to implement this part based on your backend
+}
+
+function closeModal() {
+    const modal = document.getElementById('studentModal');
+    modal.style.display = 'none';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('studentModal');
+    if (event.target == modal) {
+        modal.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html' %} 
+{% block body %}
+<div class="register-container">
+    <style>
+        .register-card {
+            margin-top: 20px; /* Adjust the form closer to the top */
+        }
+    </style>
+    <div class="register-card">
+        <div class="card-header">
+            <h2>Create Account</h2>
+            <p>Enter your details to register</p>
+        </div>
+        {% if message %}
+        <div class="alert {% if 'exists' in message %}alert-error{% else %}alert-success{% endif %}">
+            <span class="alert-icon">{% if 'exists' in message %}❌{% else %}✅{% endif %}</span>
+            <span class="alert-text">{{ message }}</span>
+        </div>
+        {% endif %}
+        <form action="{{ url_for('register') }}" method="POST">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <div class="input-field">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="username" name="username" placeholder="Enter your username" required />
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-field">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required />
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password</label>
+                <div class="input-field">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm your password" required />
+                </div>
+            </div>
+            <input type="hidden" name="instructor" value="instructor" />
+            <button type="submit" class="submit-btn">
+                <span>Create Account</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
