@@ -76,9 +76,20 @@ def register():
     cursor.execute('SELECT * FROM admin WHERE usertype = "instructor" ORDER BY date_created DESC')
     accounts = cursor.fetchall()
     cursor.close()
+    
 
     return render_template('register.html', message=message, accounts=accounts)
 
+
+@app.route('/available_sub')
+def Available_sub():
+    if 'usertype' in session and session['usertype'] == 'admin':
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('SELECT * FROM subject')
+        subjects = cursor.fetchall()
+        cursor.close()
+        return render_template('Available_sub.html', subjects=subjects)
+    return redirect(url_for('login'))
 
 @app.route('/admin_dashboard')
 def admin_dashboard():

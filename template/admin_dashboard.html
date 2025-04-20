@@ -3,11 +3,24 @@
 {% block content %}
 <div class="container-fluid">
   <div class="content-wrapper">
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="alert-container">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
     <!-- Subject List Section -->
     <div class="card p-4" style="background-color: #2b2b2b; border: 1px solid #444;">
       <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
         <h5 class="mb-0">Subject List</h5>
-        <span class="badge bg-light text-dark">{{ subject |length }} Total</span>
+        <span class="badge bg-light text-dark">{{ subjects |length }} Total</span>
       </div>
       <div class="card-body px-0">  <!-- Remove horizontal padding -->
         <!-- Filter Controls -->
@@ -41,8 +54,8 @@
             <div class="col-md-4">
               <select class="form-select bg-dark text-light" id="semesterFilter">
                 <option value="">All Semesters</option>
-                <option value="1">First Semester</option>
-                <option value="2">Second Semester</option>
+                <option value="1">1st Semester</option>
+                <option value="2">2nd Semester</option>
               </select>
             </div>
           </div>
@@ -63,26 +76,18 @@
             </thead>
             <tbody>
               {% for subject in subjects %}
-              <tr>
-                <td>{{ subject.subject_Code }}</td>
+              <tr data-room="{{ subject.room }}" data-time="{{ subject.time }}" data-day="{{ subject.day }}">
+                <td>{{ subject.subject_code }}</td>
                 <td>{{ subject.subject }}</td>
-                <td>{{ subject.course }}</td>
+                <td>{{ subject.course_id }}</td>
                 <td>{{ subject.year }}</td>
-                <td>
-                  {% if subject.semester == 1 %}First{% endif %}
-                  {% if subject.semester == 2 %}Second{% endif %}
-                </td>
+                <td>{{ subject.semester }}</td>
                 <td>
                   <div class="btn-group btn-group-sm" role="group">
                     <button type="button" class="btn btn-warning" 
                             data-bs-toggle="modal" 
-                            data-bs-target="#editSubject{{ subject.Subject_ID }}">
+                            data-bs-target="#editSubject{{ subject.subject_id }}">
                       <i class="bx bx-edit"></i>
-                    </button>
-                    <button type="button" class="btn btn-danger" 
-                            data-bs-toggle="modal" 
-                            data-bs-target="#deleteSubject{{ subject.Subject_ID }}">
-                      <i class="bx bx-trash"></i>
                     </button>
                   </div>
                 </td>
@@ -93,43 +98,89 @@
         </div>
       </div>
     </div>
+
+    <!-- Edit Subject Modal -->
+    {% for subject in subjects %}
+    <div class="modal fade" id="editSubject{{ subject.subject_id }}" tabindex="-1" aria-labelledby="editSubjectLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editSubjectLabel">Edit Subject: {{ subject.subject }}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <!-- Room, Time, Day Inputs -->
+              <div class="mb-3">
+                <label for="room" class="form-label">Room</label>
+                <input type="text" class="form-control" id="room" name="room" value="{{ subject.room }}">
+              </div>
+              <div class="mb-3">
+                <label for="startTime" class="form-label">Start Time</label>
+                <input type="time" class="form-control" id="startTime" name="start_time" value="{{ subject.start_time }}">
+              </div>
+
+              <div class="mb-3">
+                <label for="endTime" class="form-label">End Time</label>
+                <input type="time" class="form-control" id="endTime" name="end_time" value="{{ subject.end_time }}">
+              </div>
+
+              <div class="mb-3">
+                <label for="day" class="form-label">Day</label>
+                <select class="form-select" id="day" name="day">
+                  <option value="Monday" {% if subject.day == 'Monday' %} selected {% endif %}>Monday</option>
+                  <option value="Tuesday" {% if subject.day == 'Tuesday' %} selected {% endif %}>Tuesday</option>
+                  <option value="Wednesday" {% if subject.day == 'Wednesday' %} selected {% endif %}>Wednesday</option>
+                  <option value="Thursday" {% if subject.day == 'Thursday' %} selected {% endif %}>Thursday</option>
+                  <option value="Friday" {% if subject.day == 'Friday' %} selected {% endif %}>Friday</option>
+                </select>
+              </div>
+              <!-- Conflict Warning -->
+              <div class="text-danger conflict-warning d-none">⚠️ Conflict Detected! This room and time is already occupied.</div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="submit" class="btn btn-primary">Add Subject</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
   </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const courseFilter = document.getElementById('courseFilter');
-    const yearFilter = document.getElementById('yearFilter');
-    const semesterFilter = document.getElementById('semesterFilter');
-    const subjectSearch = document.getElementById('subjectSearch');
-    
-    function filterTable() {
-        const course = courseFilter.value;
-        const year = yearFilter.value;
-        const semester = semesterFilter.value;
-        const searchQuery = subjectSearch.value.toLowerCase();
-        
-        const rows = document.querySelectorAll('tbody tr');
-        
-        rows.forEach(row => {
-            const courseMatch = !course || row.cells[2].textContent.includes(course);
-            const yearMatch = !year || row.cells[3].textContent.includes(year);
-            const semesterMatch = !semester || row.cells[4].textContent.includes(
-                semester === '1' ? 'First' : 'Second'
-            );
-            const searchMatch = !searchQuery || 
-                row.cells[0].textContent.toLowerCase().includes(searchQuery) || 
-                row.cells[1].textContent.toLowerCase().includes(searchQuery);
-            
-            row.style.display = courseMatch && yearMatch && semesterMatch && searchMatch ? '' : 'none';
-        });
+    const roomInput = document.getElementById('room');
+    const timeInput = document.getElementById('time');
+    const dayInput = document.getElementById('day');
+    const conflictWarning = document.querySelector('.conflict-warning');
+
+    // Check for conflicts when inputs are changed
+    roomInput.addEventListener('input', checkConflict);
+    timeInput.addEventListener('input', checkConflict);
+    dayInput.addEventListener('change', checkConflict);
+
+    function checkConflict() {
+        const room = roomInput.value;
+        const time = timeInput.value;
+        const day = dayInput.value;
+
+        const allSubjects = Array.from(document.querySelectorAll('tbody tr')).map(row => ({
+            room: row.dataset.room,
+            time: row.dataset.time,
+            day: row.dataset.day
+        }));
+
+        const conflict = allSubjects.some(s => s.room === room && s.time === time && s.day === day);
+
+        if (conflict && room && time && day) {
+            conflictWarning.classList.remove('d-none');
+        } else {
+            conflictWarning.classList.add('d-none');
+        }
     }
-    
-    courseFilter.addEventListener('change', filterTable);
-    yearFilter.addEventListener('change', filterTable);
-    semesterFilter.addEventListener('change', filterTable);
-    subjectSearch.addEventListener('input', filterTable);
-});
+}); 
 </script>
 
 {% endblock %}
