@@ -9,7 +9,7 @@ app.secret_key = 'xyzsdfg'
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
-app.config['MYSQL_DB'] = 'subject_enlist'
+app.config['MYSQL_DB'] = 'subject_enlisting'
 
 mysql = MySQL(app)
 
@@ -139,20 +139,20 @@ def admin_dashboard():
 
         if request.method == 'POST':
             subject_code = request.form['subject_code']
-            subject_name = request.form['subject_name']
+            subject = request.form['subject']
             course_id = request.form['course_id']
             year = request.form['year']
             semester = request.form['semester']
             room = request.form['room']
             start_time = request.form['start_time']
             end_time = request.form['end_time']
-            days = ','.join(request.form.getlist('days'))
+            day_of_week = ','.join(request.form.getlist('day_of_week'))
 
             insert_query = """
-                INSERT INTO subject (subject_code, subject, course_id, year, semester, room, start_time, end_time, days)
+                INSERT INTO subj_avail (subject_code, subject, course_id, year, semester, room, start_time, end_time, day_of_week)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
-            cursor.execute(insert_query, (subject_code, subject_name, course_id, year, semester, room, start_time, end_time, days))
+            cursor.execute(insert_query, (subject_code, subject, course_id, year, semester, room, start_time, end_time, day_of_week))
             mysql.connection.commit()
 
             return redirect(url_for('admin_dashboard'))

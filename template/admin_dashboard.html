@@ -25,76 +25,25 @@
                  value="{{ request.args.get('search', '') }}">
         </div>
       </div>
-
-      <!-- Course Filter -->
-      <div class="col-md-4">
-        <div class="filter-group">
-          <label class="text-light mb-2">Course</label>
-          <select class="form-select bg-dark text-light border-secondary" id="courseFilter">
-            <option value="">All Courses</option>
-            <option value="1" {% if request.args.get('course') == 'BSCS' %}selected{% endif %}>BS Computer Science</option>
-            <option value="2" {% if request.args.get('course') == 'BSIT' %}selected{% endif %}>BS Information Technology</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Year Filter -->
-      <div class="col-md-4">
-        <div class="filter-group">
-          <label class="text-light mb-2">Year Level</label>
-          <select class="form-select bg-dark text-light border-secondary" id="yearFilter">
-            <option value="">All Years</option>
-            {% for year in ['1st Year', '2nd Year', '3rd Year', '4th Year'] %}
-            <option value="{{ year }}" {% if request.args.get('year') == year %}selected{% endif %}>{{ year }}</option>
-            {% endfor %}
-          </select>
-        </div>
-      </div>
-
-      <!-- Semester Filter -->
-      <div class="col-md-4">
-        <div class="filter-group">
-          <label class="text-light mb-2">Semester</label>
-          <select class="form-select bg-dark text-light border-secondary" id="semesterFilter">
-            <option value="">All Semesters</option>
-            <option value="1st Semester" {% if request.args.get('semester') == '1' %}selected{% endif %}>1st Semester</option>
-            <option value="2nd Semester" {% if request.args.get('semester') == '2' %}selected{% endif %}>2nd Semester</option>
-          </select>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Table Section -->
   <div class="table-responsive">
     <table class="table table-hover table-dark align-middle border-secondary">
       <thead class="bg-primary text-white">
         <tr>
-          <th>Subject Code</th>
           <th>Subject Name</th>
-          <th>Course</th>
-          <th>Year Level</th>
-          <th>Semester</th>
+          <th></th>
+          <th></th>
+          <th></th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         {% for subject in subjects %}
         <tr>
-          <td>{{ subject.subject_code }}</td>
           <td>{{ subject.subject }}</td>
-          <td>
-            <span class="badge {% if subject.course_id == 'BSCS' %}bg-info{% else %}bg-success{% endif %}">
-              {{ subject.course_id }}
-            </span>
-          </td>
+          <td></td>
           <td>{{ subject.year }}</td>
-          <td>
-            <span class="badge bg-secondary">
-              {% if subject.semester == '1' %}1st{% elif subject.semester == '2' %}2nd{% else %}{{ subject.semester }}{% endif %} 
-            </span>
-          </td>
-          
+          <td></td>
           <td>
             <div class="btn-group btn-group-sm">
               <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#editSubject{{ subject.subject_id }}">
