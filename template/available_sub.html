@@ -26,18 +26,25 @@
                             <th>Day</th>
                             <th>Year Level</th>
                             <th>Semester</th>
+                            <th>Instructor Name</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for subject in subjects %}
-                        <tr>
-                            <td>{{ subject.subject_code }}</td>
-                            <td>{{ subject.subject }}</td>
-                            <td>{{ subject.course_id }}</td>
-                            <td>{{ subject.year }}</td>
-                            <td>{{ subject.semester }}</td>
-                        </tr>
-                        {% endfor %}
+                            {% for subject in subjects %}
+                            <tr>
+                                <td>{{ subject.Sub_code }}</td>
+                                <td>{{ subject.subject_id }}</td>
+                                <td>{{ subject.course }}</td>
+                                <td>{{ subject.units }}</td>
+                                <td>{{ subject.room }}</td>
+                                <td>{{ subject.start_time }} - {{ subject.end_time }}</td>
+                                <td>{{ subject.day_of_week }}</td>
+                                <td>{{ subject.year }}</td>
+                                <td>{{ subject.semester }}</td>
+                                <td>{{ subject.instructor_id }}</td>
+                            </tr>
+                            {% endfor %}
+                        </
                     </tbody>
                 </table>
             </div>
