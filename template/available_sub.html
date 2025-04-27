@@ -27,24 +27,29 @@
                             <th>Year Level</th>
                             <th>Semester</th>
                             <th>Instructor Name</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                            {% for subject in subjects %}
-                            <tr>
-                                <td>{{ subject.Sub_code }}</td>
-                                <td>{{ subject.subject_id }}</td>
-                                <td>{{ subject.course }}</td>
-                                <td>{{ subject.units }}</td>
-                                <td>{{ subject.room }}</td>
-                                <td>{{ subject.start_time }} - {{ subject.end_time }}</td>
-                                <td>{{ subject.day_of_week }}</td>
-                                <td>{{ subject.year }}</td>
-                                <td>{{ subject.semester }}</td>
-                                <td>{{ subject.instructor_id }}</td>
-                            </tr>
-                            {% endfor %}
-                        </
+                        {% for subject in subjects %}
+                        <tr>
+                            <td>{{ subject.Sub_code }}</td>
+                            <td>{{ subject.subject_name }}</td>
+                            <td>{{ subject.course }}</td>
+                            <td>{{ subject.units }}</td>
+                            <td>{{ subject.room }}</td>
+                            <td>{{ subject.start_time }} - {{ subject.end_time }}</td>
+                            <td>{{ subject.day_of_week }}</td>
+                            <td>{{ subject.year }}</td>
+                            <td>{{ subject.semester }}</td>
+                            <td>{{ subject.instructor_name }}</td>
+                            <td>
+                                <form action="{{ url_for('remove_subject', subject_id=subject.sub_avail_id) }}" method="POST">
+                                    <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>

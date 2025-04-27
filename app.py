@@ -112,7 +112,7 @@ def register():
 
     # Fetch all instructor accounts to show in the modal
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('SELECT * FROM admin WHERE usertype = "instructor" ORDER BY date_created DESC')
+    cursor.execute('SELECT * FROM admin WHERE usertype = "instructor" ORDER BY time_created DESC')
     accounts = cursor.fetchall()
     cursor.close()
 
@@ -124,7 +124,15 @@ def register():
 def Available_sub():
     if 'usertype' in session and session['usertype'] == 'admin':
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT * FROM subj_avail')
+        query = '''
+            SELECT sa.*, 
+                i.name AS instructor_name,
+                s.subject AS subject_name
+            FROM subj_avail sa
+            LEFT JOIN instructor i ON sa.instructor_id = i.instructor_id
+            LEFT JOIN subject s ON sa.subject_id = s.subject_id
+        '''
+        cursor.execute(query)
         subjects = cursor.fetchall()
         cursor.close()
         return render_template('Available_sub.html', subjects=subjects)
@@ -135,57 +143,72 @@ def Available_sub():
 @app.route('/admin_dashboard', methods=['GET', 'POST'])
 def admin_dashboard():
     if 'usertype' in session and session['usertype'] == 'admin':
+        try:
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            query = "SELECT * FROM subject"
+            cursor.execute(query)
+            subjects = cursor.fetchall()
+
+            cursor.execute("SELECT * FROM instructor")  # Fetch instructors for the dropdown
+            instructors = cursor.fetchall()
+            cursor.close()
+
+            return render_template('admin_dashboard.html', subjects=subjects, instructors=instructors)
+        except Exception as e:
+            print(f"Error: {e}")
+            return render_template('error.html', message="Error retrieving data.")
+    return redirect(url_for('login'))
+
+
+@app.route('/insert_subject_avail', methods=['POST'])
+def insert_subject_avail():
+    if 'usertype' in session and session['usertype'] == 'admin':
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
 
-        if request.method == 'POST':
-            subject_code = request.form['subject_code']
-            subject = request.form['subject']
-            course_id = request.form['course_id']
-            year = request.form['year']
-            semester = request.form['semester']
-            room = request.form['room']
-            start_time = request.form['start_time']
-            end_time = request.form['end_time']
-            day_of_week = ','.join(request.form.getlist('day_of_week'))
+        # Retrieve the data from the form
+        subject_code = request.form['subject_code']
+        course = request.form['course']
+        year = request.form['year']
+        semester = request.form['semester']
+        units = request.form['units']
+        room = request.form['room']
+        start_time = request.form['start_time']
+        end_time = request.form['end_time']
+        days = request.form.getlist('days')  # Get the list of selected days
+        instructor_id = request.form['instructor_id']
+        subject_id = request.form['subject_id']
 
-            insert_query = """
-                INSERT INTO subj_avail (subject_code, subject, course_id, year, semester, room, start_time, end_time, day_of_week)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """
-            cursor.execute(insert_query, (subject_code, subject, course_id, year, semester, room, start_time, end_time, day_of_week))
-            mysql.connection.commit()
+        # Convert the list of days to a comma-separated string
+        day_of_week = ', '.join(days)
 
-            return redirect(url_for('admin_dashboard'))
+        # SQL query to insert data into subj_avail
+        insert_query = """
+            INSERT INTO subj_avail (Sub_code, course, year, semester, units, room, start_time, end_time, day_of_week, instructor_id, subject_id) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(insert_query, (subject_code, course, year, semester, units, room, start_time, end_time, day_of_week, instructor_id, subject_id))
+        mysql.connection.commit()
 
-        # Filtering logic
-        search = request.args.get('search', '').strip()
-        course = request.args.get('course', '')
-        year = request.args.get('year', '')
-        semester = request.args.get('semester', '')
-
-        query = "SELECT * FROM subject WHERE 1=1"
-        params = []
-
-        if search:
-            query += " AND (subject_code LIKE %s OR subject LIKE %s)"
-            like = f"%{search}%"
-            params.extend([like, like])
-        if course:
-            query += " AND course_id = %s"
-            params.append(course)
-        if year:
-            query += " AND year = %s"
-            params.append(year)
-        if semester:
-            query += " AND semester = %s"
-            params.append(semester)
-
-        cursor.execute(query, params)
-        subjects = cursor.fetchall()
+        # Close the cursor and redirect to a page (optional)
         cursor.close()
+        return redirect(url_for('admin_dashboard'))  # You can redirect to any relevant page
+    return redirect(url_for('login'))
 
-        return render_template('admin_dashboard.html', subjects=subjects)
 
+@app.route('/remove_subject/<int:subject_id>', methods=['POST'])
+def remove_subject(subject_id):
+    if 'usertype' in session and session['usertype'] == 'admin':
+        try:
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            # Delete the subject from subj_avail table
+            delete_query = "DELETE FROM subj_avail WHERE sub_avail_id = %s"
+            cursor.execute(delete_query, (subject_id,))
+            mysql.connection.commit()
+            cursor.close()
+            return redirect(url_for('Available_sub'))
+        except Exception as e:
+            print(f"Error: {e}")
+            return render_template('error.html', message="Error deleting subject.")
     return redirect(url_for('login'))
 
 
@@ -229,6 +252,10 @@ def subject_list():
         cursor.close()
         return render_template('subject_list.html', subjects=subjects)
     return redirect(url_for('login'))
+
+
+
+
 
 
 if __name__ == "__main__":
