@@ -18,7 +18,6 @@
         {% endif %}
 
         <form action="{{ url_for('register') }}" method="POST">
-          <!-- Form fields remain the same -->
           <div class="form-group">
             <label for="name" style="color: white;">Name</label>
             <input type="text" id="name" name="name" class="form-control" placeholder="Enter your name" required>
@@ -48,8 +47,8 @@
       <i class="fas fa-users"></i> View Registered Accounts
     </button>
 
-    <!-- Registered Accounts Modal -->
-    <div class="modal fade" id="accountsModal" tabindex="-1" aria-labelledby="accountsModalLabel" aria-hidden="true">
+    <!-- Registered Accounts Modal - Fixed version -->
+    <div class="modal fade" id="accountsModal" tabindex="-1" aria-labelledby="accountsModalLabel" aria-hidden="true" style="z-index: 1050;">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content" style="background-color: #2e2e2e; color: white;">
           <div class="modal-header border-0">
@@ -76,10 +75,9 @@
                   <td>{{ account.time_created }}</td>
                   <td>
                     <button class="btn btn-sm btn-warning open-edit-modal"
-                            data-bs-toggle="modal"
-                            data-bs-target="#editModal"
                             data-username="{{ account.username }}"
-                            data-password="{{ account.password }}">
+                            data-password="{{ account.password }}"
+                            onclick="openEditModal('{{ account.username }}')">
                       Edit
                     </button>
                     <form method="POST" action="{{ url_for('register') }}" class="d-inline">
@@ -100,8 +98,8 @@
       </div>
     </div>
 
-    <!-- Edit Password Modal -->
-    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <!-- Edit Password Modal - Fixed version -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true" style="z-index: 1060;">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="background-color: #2e2e2e; color: white;">
           <form method="POST" action="{{ url_for('register') }}">
@@ -132,13 +130,51 @@
 
   </div>
 </div>
+
+<!-- CSS fixes -->
+<style>
+  /* Fix modal interaction issues */
+  .modal {
+    pointer-events: auto !important;
+  }
+  
+  .modal-backdrop {
+    z-index: 1040 !important;
+  }
+  
+  .modal-content {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  }
+  
+  /* Ensure modal buttons are clickable */
+  .modal button, .modal a {
+    position: relative;
+    z-index: 1;
+  }
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Handle opening edit modal
+  // Initialize Bootstrap modals properly
+  var modals = document.querySelectorAll('.modal');
+  modals.forEach(function(modalEl) {
+    var modal = new bootstrap.Modal(modalEl);
+  });
+  
+  // Function to open edit modal with correct username
+  window.openEditModal = function(username) {
+    document.getElementById('edit-username').value = username;
+    var editModal = new bootstrap.Modal(document.getElementById('editModal'));
+    editModal.show();
+  };
+  
+  // Close accounts modal when edit modal is opened
   document.querySelectorAll('.open-edit-modal').forEach(button => {
     button.addEventListener('click', function() {
-      const username = this.getAttribute('data-username');
-      document.getElementById('edit-username').value = username;
+      var accountsModal = bootstrap.Modal.getInstance(document.getElementById('accountsModal'));
+      if (accountsModal) {
+        accountsModal.hide();
+      }
     });
   });
 
@@ -163,7 +199,15 @@ document.addEventListener('DOMContentLoaded', function() {
       alert('New passwords do not match!');
     }
   });
+  
+  // Ensure all modal close buttons work properly
+  document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(button => {
+    button.addEventListener('click', function() {
+      const modalId = this.closest('.modal').id;
+      const modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
+      if (modal) modal.hide();
+    });
+  });
 });
 </script>
-
 {% endblock %}

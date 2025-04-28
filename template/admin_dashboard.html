@@ -5,8 +5,8 @@
   <!-- Header Section -->
   <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3 mb-4">
     <div class="d-flex align-items-center">
-      <h5 class="mb-0 me-3">Subject Management</h5>
-      <span class="badge bg-light text-dark">{{ subjects | length }} Subjects</span>
+      <h5 class="mb-0 me-3">List of Subject</h5>
+      <span class="badge bg-light text-dark" id="subjectCount">{{ subjects | length }} Subjects</span>
     </div>
   </div>
 
@@ -21,7 +21,7 @@
           </span>
           <input type="text" id="subjectSearch" 
                 class="form-control bg-dark text-light border-secondary" 
-                placeholder="Search subjects..."
+                placeholder="Search subjects..." 
                 value="{{ request.args.get('search', '') }}">
         </div>
       </div>
@@ -37,10 +37,10 @@
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody id="subjectTableBody">
         {% for subject in subjects %}
-        <tr>
-          <td>{{ subject.subject }}</td>
+        <tr class="subject-row">
+          <td class="subject-name">{{ subject.subject }}</td>
           <td>
             <div class="btn-group btn-group-sm">
               <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#editSubject{{ subject.subject_id }}">
@@ -50,7 +50,7 @@
           </td>
         </tr>
         {% else %}
-        <tr>
+        <tr id="no-results-row" style="display: none;">
           <td colspan="7" class="text-center text-muted py-4">
             <i class="bx bx-info-circle me-2"></i>No subjects found matching your filters.
           </td>
@@ -61,7 +61,7 @@
   </div>
 </div>
 
-<<!-- Modal for Editing Subject -->
+<!-- Modal for Editing Subject -->
 {% for subject in subjects %}
 <div class="modal fade" id="editSubject{{ subject.subject_id }}" tabindex="-1" aria-labelledby="editSubjectLabel{{ subject.subject_id }}" aria-hidden="true">
   <div class="modal-dialog modal-lg">
@@ -205,28 +205,66 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Handle filters
-    const filters = {
-        search: document.getElementById('subjectSearch')
-    };
-
-    let timeoutId;
-
-    const applyFilters = () => {
-        const params = new URLSearchParams(window.location.search);
-        if (filters.search && filters.search.value) {
-            params.set('search', filters.search.value.trim());
-        } else {
-            params.delete('search');
+    // Client-side search functionality
+    const searchInput = document.getElementById('subjectSearch');
+    const subjectRows = document.querySelectorAll('.subject-row');
+    const noResultsRow = document.createElement('tr');
+    noResultsRow.id = 'no-results-row';
+    noResultsRow.innerHTML = `
+        <td colspan="7" class="text-center text-muted py-4">
+            <i class="bx bx-info-circle me-2"></i>No subjects found matching your search.
+        </td>
+    `;
+    const subjectCountBadge = document.getElementById('subjectCount');
+    const subjectTableBody = document.getElementById('subjectTableBody');
+    
+    // Initial count
+    const totalSubjects = subjectRows.length;
+    
+    // Handle search filtering
+    function filterSubjects() {
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        let visibleCount = 0;
+        let hasVisibleRows = false;
+        
+        // Remove existing no-results row if present
+        const existingNoResults = document.getElementById('no-results-row');
+        if (existingNoResults) {
+            existingNoResults.remove();
         }
-        window.location.href = window.location.pathname + '?' + params.toString();
-    };
-
-    if (filters.search) {
-        filters.search.addEventListener('input', () => {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(applyFilters, 500);
+        
+        subjectRows.forEach(row => {
+            const subjectName = row.querySelector('.subject-name').textContent.toLowerCase();
+            if (searchTerm === '' || subjectName.includes(searchTerm)) {
+                row.style.display = '';
+                visibleCount++;
+                hasVisibleRows = true;
+            } else {
+                row.style.display = 'none';
+            }
         });
+        
+        // Update count badge
+        subjectCountBadge.textContent = `${visibleCount} of ${totalSubjects} Subjects`;
+        
+        // Show no results message if needed
+        if (!hasVisibleRows) {
+            subjectTableBody.appendChild(noResultsRow);
+        }
+    }
+    
+    // Add event listener with a small delay for better performance
+    let searchTimeout;
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(filterSubjects, 200); // 200ms delay for smoother experience
+        });
+        
+        // Apply any initial search from URL
+        if (searchInput.value) {
+            filterSubjects();
+        }
     }
 });
 </script>
@@ -255,6 +293,16 @@ document.addEventListener('DOMContentLoaded', function () {
 }
 .modal {
   z-index: 1050;
+}
+
+/* Animation for smooth transitions */
+.subject-row {
+  transition: opacity 0.2s ease;
+}
+
+#subjectSearch:focus {
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  border-color: #0d6efd;
 }
 </style>
 
