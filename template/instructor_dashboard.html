@@ -32,10 +32,9 @@
                 
                 <!-- Student Information -->
                 <div class="student-info" id="studentInfoSection">
-                    <div id="noStudentSelected" class="no-student-selected">
-                        <h3>No Student Selected</h3>
-                        <p>Search for a student above to view their information.</p>
-                        <button class="btn btn-primary" onclick="showDemoStudent()">Show Demo Student</button>
+                    <div id="initialMessage" class="no-student-selected">
+                        <h3>Search Students</h3>
+                        <p>Enter a student name or ID to view their information.</p>
                     </div>
                     
                     <div id="studentDetails" style="display: none;">
@@ -43,79 +42,8 @@
                             Student Information
                             <span id="studentStatus" class="status status-warning">Needs Advising</span>
                         </h2>
-                        
                         <div class="student-details">
-                            <div>
-                                <div class="detail-group">
-                                    <label>Student ID</label>
-                                    <p id="studentId">2023-0001</p>
-                                </div>
-                                <div class="detail-group">
-                                    <label>Name</label>
-                                    <p id="studentName">Sarah Johnson</p>
-                                </div>
-                                <div class="detail-group">
-                                    <label>Email</label>
-                                    <p id="studentEmail">sarah.johnson@university.edu</p>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="detail-group">
-                                    <label>Program</label>
-                                    <p id="studentProgram">Computer Science</p>
-                                </div>
-                                <div class="detail-group">
-                                    <label>Year Level</label>
-                                    <p id="studentYear">2nd Year</p>
-                                </div>
-                                <div class="detail-group">
-                                    <label>GPA</label>
-                                    <p id="studentGPA">3.65</p>
-                                </div>
-                                <div class="detail-group">
-                                    <label>Max Units Allowed</label>
-                                    <p id="maxUnits">18</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="current-subjects">
-                            <h3>Currently Enrolled Subjects</h3>
-                            <div class="enrolled-subjects" id="enrolledSubjectsList">
-                                <div class="subject-card">
-                                    <h4>CS201</h4>
-                                    <p>Data Structures</p>
-                                    <p class="units">3 Units</p>
-                                </div>
-                                <div class="subject-card">
-                                    <h4>CS210</h4>
-                                    <p>Algorithms</p>
-                                    <p class="units">3 Units</p>
-                                </div>
-                                <div class="subject-card">
-                                    <h4>MATH255</h4>
-                                    <p>Linear Algebra</p>
-                                    <p class="units">3 Units</p>
-                                </div>
-                                <div class="subject-card">
-                                    <h4>ENG104</h4>
-                                    <p>Technical Writing</p>
-                                    <p class="units">3 Units</p>
-                                </div>
-                            </div>
-                            <p class="total-units">Total Units: <span id="currentTotalUnits">12</span>/<span id="maxAllowedUnits">18</span></p>
-                        </div>
-                        
-                        <div class="recommendations">
-                            <h3>Recommended Subjects</h3>
-                            <div class="recommended-subjects" id="recommendedSubjectsList">
-                                <!-- Will be populated from the subject list -->
-                            </div>
-                            
-                            <div class="advise-actions">
-                                <button class="btn btn-secondary" onclick="clearRecommendations()">Clear</button>
-                                <button class="btn btn-primary" onclick="sendRecommendations()">Send Recommendations</button>
-                            </div>
+                            <!-- Student details will be populated dynamically -->
                         </div>
                     </div>
                 </div>
@@ -161,7 +89,7 @@
                                     <td>{{ subject.semester }}</td>
                                     <td>{{ subject.instructor_name }}</td>
                                     <td>
-                                        <button class="btn btn-warning btn-sm" onclick="recommendSubject('{{ subject.Sub_code }}', '{{ subject.subject_name }}', {{ subject.units }})">
+                                        <button class="btn btn-warning btn-sm" onclick="recommendSubject('{{ subject.Sub_code }}', '{{ subject.subject_name }}', {{ subject.unit }})">
                                             Recommend
                                         </button>
                                     </td>

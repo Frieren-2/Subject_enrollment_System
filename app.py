@@ -225,8 +225,47 @@ def student_dashboard():
 @app.route('/instructor_dashboard')
 def instructor_dashboard():
     if 'usertype' in session and session['usertype'] == 'instructor':
-        return render_template('instructor_dashboard.html')
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            SELECT sa.*, 
+                   i.name AS instructor_name,
+                   s.subject AS subject_name
+            FROM subj_avail sa
+            LEFT JOIN instructor i ON sa.instructor_id = i.instructor_id
+            LEFT JOIN subject s ON sa.subject_id = s.subject_id
+        """)
+        subjects = cur.fetchall()
+        cur.close()
+        return render_template('instructor_dashboard.html', subjects=subjects)
     return redirect(url_for('login'))
+
+@app.route('/instructor/get_student', methods=['POST'])
+def get_student():
+    student_id = request.form['student_id']
+    cur = mysql.connection.cursor()
+
+    # Get student basic info
+    cur.execute("SELECT * FROM student WHERE student_id = %s", (student_id,))
+    student = cur.fetchone()
+
+    # Get student's enrolled subjects
+    cur.execute("""
+        SELECT s.subject_id, s.subject, sa.room, sa.day_of_week, sa.start_time, sa.end_time
+        FROM student_subject ss
+        JOIN subj_avail sa ON ss.subj_avail_id = sa.subj_avail_id
+        JOIN subject s ON sa.subject_id = s.subject_id
+        WHERE ss.student_id = %s
+    """, (student_id,))
+    enrolled_subjects = cur.fetchall()
+
+    cur.close()
+
+    if student:
+        return jsonify({'student': student, 'enrolled_subjects': enrolled_subjects})
+    else:
+        return jsonify({'error': 'Student not found'}), 404
+
+
 
 
 
