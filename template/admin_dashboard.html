@@ -5,8 +5,8 @@
   <!-- Header Section -->
   <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3 mb-4">
     <div class="d-flex align-items-center">
-      <h5 class="mb-0 me-3">Subject Management</h5>
-      <span class="badge bg-light text-dark">{{ subjects | length }} Subjects</span>
+      <h5 class="mb-0 me-3">List of Subject</h5>
+      <span class="badge bg-light text-dark" id="subjectCount">{{ subjects | length }} Subjects</span>
     </div>
   </div>
 
@@ -20,81 +20,27 @@
             <i class="bx bx-search"></i>
           </span>
           <input type="text" id="subjectSearch" 
-                 class="form-control bg-dark text-light border-secondary" 
-                 placeholder="Search subjects..."
-                 value="{{ request.args.get('search', '') }}">
-        </div>
-      </div>
-
-      <!-- Course Filter -->
-      <div class="col-md-4">
-        <div class="filter-group">
-          <label class="text-light mb-2">Course</label>
-          <select class="form-select bg-dark text-light border-secondary" id="courseFilter">
-            <option value="">All Courses</option>
-            <option value="1" {% if request.args.get('course') == 'BSCS' %}selected{% endif %}>BS Computer Science</option>
-            <option value="2" {% if request.args.get('course') == 'BSIT' %}selected{% endif %}>BS Information Technology</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Year Filter -->
-      <div class="col-md-4">
-        <div class="filter-group">
-          <label class="text-light mb-2">Year Level</label>
-          <select class="form-select bg-dark text-light border-secondary" id="yearFilter">
-            <option value="">All Years</option>
-            {% for year in ['1st Year', '2nd Year', '3rd Year', '4th Year'] %}
-            <option value="{{ year }}" {% if request.args.get('year') == year %}selected{% endif %}>{{ year }}</option>
-            {% endfor %}
-          </select>
-        </div>
-      </div>
-
-      <!-- Semester Filter -->
-      <div class="col-md-4">
-        <div class="filter-group">
-          <label class="text-light mb-2">Semester</label>
-          <select class="form-select bg-dark text-light border-secondary" id="semesterFilter">
-            <option value="">All Semesters</option>
-            <option value="1st Semester" {% if request.args.get('semester') == '1' %}selected{% endif %}>1st Semester</option>
-            <option value="2nd Semester" {% if request.args.get('semester') == '2' %}selected{% endif %}>2nd Semester</option>
-          </select>
+                class="form-control bg-dark text-light border-secondary" 
+                placeholder="Search subjects..." 
+                value="{{ request.args.get('search', '') }}">
         </div>
       </div>
     </div>
   </div>
-
+  
   <!-- Table Section -->
   <div class="table-responsive">
     <table class="table table-hover table-dark align-middle border-secondary">
       <thead class="bg-primary text-white">
         <tr>
-          <th>Subject Code</th>
           <th>Subject Name</th>
-          <th>Course</th>
-          <th>Year Level</th>
-          <th>Semester</th>
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody id="subjectTableBody">
         {% for subject in subjects %}
-        <tr>
-          <td>{{ subject.subject_code }}</td>
-          <td>{{ subject.subject }}</td>
-          <td>
-            <span class="badge {% if subject.course_id == 'BSCS' %}bg-info{% else %}bg-success{% endif %}">
-              {{ subject.course_id }}
-            </span>
-          </td>
-          <td>{{ subject.year }}</td>
-          <td>
-            <span class="badge bg-secondary">
-              {% if subject.semester == '1' %}1st{% elif subject.semester == '2' %}2nd{% else %}{{ subject.semester }}{% endif %} 
-            </span>
-          </td>
-          
+        <tr class="subject-row">
+          <td class="subject-name">{{ subject.subject }}</td>
           <td>
             <div class="btn-group btn-group-sm">
               <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#editSubject{{ subject.subject_id }}">
@@ -104,7 +50,7 @@
           </td>
         </tr>
         {% else %}
-        <tr>
+        <tr id="no-results-row" style="display: none;">
           <td colspan="7" class="text-center text-muted py-4">
             <i class="bx bx-info-circle me-2"></i>No subjects found matching your filters.
           </td>
@@ -120,88 +66,125 @@
 <div class="modal fade" id="editSubject{{ subject.subject_id }}" tabindex="-1" aria-labelledby="editSubjectLabel{{ subject.subject_id }}" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content bg-dark text-light">
-      <div class="modal-header">
+      <div class="modal-header bg-warning text-dark">
         <h5 class="modal-title" id="editSubjectLabel{{ subject.subject_id }}">Edit Subject Details</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form action="/update_subject/{{ subject.subject_id }}" method="POST">
+      <!-- Form to insert the subject availability -->
+      <form action="/insert_subject_avail" method="POST">
+        <input type="hidden" name="subject_id" value="{{ subject.subject_id }}">
         <div class="modal-body">
-          <div class="mb-3">
-            <label for="subjectRoom{{ subject.subject_id }}" class="form-label">Room</label>
-            <input type="text" class="form-control bg-dark text-light" id="subjectRoom{{ subject.subject_id }}" name="room" value="{{ subject.room }}" required>
-          </div>
-          <div class="mb-3">
-            <label for="subjectStartTime{{ subject.subject_id }}" class="form-label">Start Time</label>
-            <input type="time" class="form-control bg-dark text-light" id="subjectStartTime{{ subject.subject_id }}" name="start_time" value="{{ subject.start_time }}" required>
-          </div>
-          <div class="mb-3">
-            <label for="subjectEndTime{{ subject.subject_id }}" class="form-label">End Time</label>
-            <input type="time" class="form-control bg-dark text-light" id="subjectEndTime{{ subject.subject_id }}" name="end_time" value="{{ subject.end_time }}" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Day of the Week</label>
-            <div class="row">
-              {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] %}
-                <div class="col-md-2">
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="subjectDay{{ subject.subject_id }}_{{ day }}" name="days" value="{{ day }}" {% if day in subject.days %}checked{% endif %}>
-                    <label class="form-check-label" for="subjectDay{{ subject.subject_id }}_{{ day }}">
-                      {{ day }}
-                    </label>
-                  </div>
+          <div class="row g-3">
+            <!-- Subject Code -->
+            <div class="col-md-6">
+              <label for="editSubjectCode{{ subject.subject_id }}" class="form-label">Subject Code</label>
+              <input type="text" class="form-control bg-dark text-light" id="editSubjectCode{{ subject.subject_id }}" name="subject_code" value="{{ subject.subject_code }}" required>
+            </div>
+            
+            <!-- Subject Name -->
+            <div class="col-md-6">
+              <label for="editSubjectName{{ subject.subject_id }}" class="form-label">Subject Name</label>
+              <input type="text" class="form-control bg-dark text-light" id="editSubjectName{{ subject.subject_id }}" name="subject" value="{{ subject.subject }}" required>
+            </div>
+            
+            <!-- Course -->
+            <div class="col-md-6">
+              <label for="editCourse{{ subject.subject_id }}" class="form-label">Course</label>
+              <select class="form-select bg-dark text-light" id="editCourse{{ subject.subject_id }}" name="course" required>
+                <option value="BS Computer Science" {% if subject.course == 'BS Computer Science' %}selected{% endif %}>BS Computer Science</option>
+                <option value="BS Information Technology" {% if subject.course == 'BS Information Technology' %}selected{% endif %}>BS Information Technology</option>
+              </select>
+            </div>
+            
+            <!-- Units -->
+            <div class="col-md-6">
+              <label for="editUnits{{ subject.subject_id }}" class="form-label">Units</label>
+              <select class="form-select bg-dark text-light" id="editUnits{{ subject.subject_id }}" name="units" required>
+                <option value="2" {% if subject.units == 2 %}selected{% endif %}>2</option>
+                <option value="3" {% if subject.units == 3 %}selected{% endif %}>3</option>
+                <option value="4" {% if subject.units == 4 %}selected{% endif %}>4</option>
+              </select>
+            </div>
+            
+            <!-- Room -->
+            <div class="col-md-6">
+              <label for="subjectRoom{{ subject.subject_id }}" class="form-label">Room</label>
+              <input type="text" class="form-control bg-dark text-light" id="subjectRoom{{ subject.subject_id }}" name="room" value="{{ subject.room }}" required>
+            </div>
+            
+            <!-- Time -->
+            <div class="col-md-6">
+              <div class="row">
+                <div class="col">
+                  <label for="subjectStartTime{{ subject.subject_id }}" class="form-label">Start Time</label>
+                  <input type="time" class="form-control bg-dark text-light" id="subjectStartTime{{ subject.subject_id }}" name="start_time" value="{{ subject.start_time }}" required>
                 </div>
-              {% endfor %}
+                <div class="col">
+                  <label for="subjectEndTime{{ subject.subject_id }}" class="form-label">End Time</label>
+                  <input type="time" class="form-control bg-dark text-light" id="subjectEndTime{{ subject.subject_id }}" name="end_time" value="{{ subject.end_time }}" required>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Day of the Week -->
+            <div class="col-12">
+              <label class="form-label">Day of the Week</label>
+              <div class="row">
+                {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] %}
+                  <div class="col-md-2">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="subjectDay{{ subject.subject_id }}_{{ day }}" name="days" value="{{ day }}" {% if day in subject.days %}checked{% endif %}>
+                      <label class="form-check-label" for="subjectDay{{ subject.subject_id }}_{{ day }}">
+                        {{ day }}
+                      </label>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+            
+            <!-- Year Level -->
+            <div class="col-md-4">
+              <label for="editYearLevel{{ subject.subject_id }}" class="form-label">Year Level</label>
+              <select class="form-select bg-dark text-light" id="editYearLevel{{ subject.subject_id }}" name="year" required>
+                <option value="1st Year" {% if subject.year == 1 %}selected{% endif %}>1st Year</option>
+                <option value="2nd Year" {% if subject.year == 2 %}selected{% endif %}>2nd Year</option>
+                <option value="3rd Year" {% if subject.year == 3 %}selected{% endif %}>3rd Year</option>
+                <option value="4th Year" {% if subject.year == 4 %}selected{% endif %}>4th Year</option>
+              </select>
+            </div>
+            
+            <!-- Semester -->
+            <div class="col-md-4">
+              <label for="editSemester{{ subject.subject_id }}" class="form-label">Semester</label>
+              <select class="form-select bg-dark text-light" id="editSemester{{ subject.subject_id }}" name="semester" required>
+                <option value="1st Semester" {% if subject.semester == 1 %}selected{% endif %}>1st Semester</option>
+                <option value="2nd Semester" {% if subject.semester == 2 %}selected{% endif %}>2nd Semester</option>
+                <option value="3" {% if subject.semester == 3 %}selected{% endif %}>Summer</option>
+              </select>
+            </div>
+            
+            <!-- Instructor Name -->
+            <div class="col-md-4">
+              <label for="editInstructorName{{ subject.subject_id }}" class="form-label">Instructor Name</label>
+              <select class="form-select bg-dark text-light" id="editInstructorName{{ subject.subject_id }}" name="instructor_id" required>
+                {% for instructor in instructors %}
+                  <option value="{{ instructor.instructor_id }}" {% if subject.instructor_id == instructor.instructor_id %}selected{% endif %}>{{ instructor.name }}</option>
+                {% endfor %}
+              </select>
             </div>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary">Add Subject</button>
+          <button type="submit" class="btn btn-warning">Open Subject</button>
         </div>
       </form>
     </div>
   </div>
 </div>
 {% endfor %}
-
-<!-- JavaScript for Filters -->
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const filters = {
-        course: document.getElementById('courseFilter'),
-        year: document.getElementById('yearFilter'),
-        semester: document.getElementById('semesterFilter'),
-        search: document.getElementById('subjectSearch')
-    };
-
-    let timeoutId;
-
-    const applyFilters = () => {
-        const params = new URLSearchParams(window.location.search);
-
-        Object.entries(filters).forEach(([key, element]) => {
-            if (element.value) {
-                params.set(key, element.value.trim());
-            } else {
-                params.delete(key);
-            }
-        });
-
-        window.location.href = `${window.location.pathname}?${params.toString()}`;
-    };
-
-    filters.search.addEventListener('input', () => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(applyFilters, 500);
-    });
-
-    Object.values(filters).forEach(element => {
-        if (element !== filters.search) {
-            element.addEventListener('change', applyFilters);
-        }
-    });
-});
-</script>
+>
 
 <!-- Styling -->
 <style>
@@ -219,6 +202,24 @@ document.addEventListener('DOMContentLoaded', function () {
 .badge {
   padding: 0.5em 0.8em;
   font-weight: 500;
+}
+
+/* Fix for modal backdrop */
+.modal-backdrop {
+  z-index: 1040;
+}
+.modal {
+  z-index: 1050;
+}
+
+/* Animation for smooth transitions */
+.subject-row {
+  transition: opacity 0.2s ease;
+}
+
+#subjectSearch:focus {
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  border-color: #0d6efd;
 }
 </style>
 

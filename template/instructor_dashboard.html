@@ -3,77 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instructor Dashboard</title>
-    <style>
-        .table {
-            margin-top: 10px; /* Adjust the table closer to the top */
-        }
-        .card {
-            margin-top: 20px; /* Add spacing between sections */
-        }
-        /* Add responsive adjustments */
-        @media (max-width: 991.98px) {
-            .row > .col-md-8,
-            .row > .col-md-4 {
-                margin-bottom: 20px;
-            }
-        }
-        /* Highlight current day in schedule */
-        .highlight-today {
-            background-color: #e9f7ef !important;
-        }
-    </style>
+    <title>Subject Enlist - Instructor Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/instructor_dashboard.css') }}">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="#">Instructor Dashboard</a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
-            </div>
+    <header>
+        <div class="logo">Subject Enlist</div>
+        <div class="user-info">
+            <span>Prof. Johnson</span>
+            <div class="user-avatar">PJ</div>
         </div>
-    </nav>
-
-    <div class="container mt-4">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        <div class="row">
-            <!-- Current Schedule -->
-            <div class="col-md-8 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h4>Current Schedule</h4>
+    </header>
+    
+    <div class="main-container">
+        <h1 class="page-title">Instructor Advising Dashboard</h1>
+        
+        <div class="dashboard-content">
+            <!-- Left Column - Student Section -->
+            <div class="student-section">
+                <!-- Student Search -->
+                <div class="student-search">
+                    <h2>Student Search</h2>
+                    <div class="search-bar">
+                        <input type="text" id="studentSearch" placeholder="Search by name or student ID...">
+                        <button onclick="searchStudent()">Search</button>
                     </div>
-                    <div class="card-body">
-                        <table class="table">
-                            <thead>
+                </div>
+                
+                <!-- Student Information -->
+                <div class="student-info" id="studentInfoSection">
+                    <div id="noStudentSelected" class="no-student-selected">
+                        <h3>No Student Selected</h3>
+                        <p>Search for a student above to view their information.</p>
+                        <button class="btn btn-primary" onclick="showDemoStudent()">Show Demo Student</button>
+                    </div>
+                    
+                    <div id="studentDetails" style="display: none;">
+                        <h2>
+                            Student Information
+                            <span id="studentStatus" class="status status-warning">Needs Advising</span>
+                        </h2>
+                        
+                        <div class="student-details">
+                            <div>
+                                <div class="detail-group">
+                                    <label>Student ID</label>
+                                    <p id="studentId">2023-0001</p>
+                                </div>
+                                <div class="detail-group">
+                                    <label>Name</label>
+                                    <p id="studentName">Sarah Johnson</p>
+                                </div>
+                                <div class="detail-group">
+                                    <label>Email</label>
+                                    <p id="studentEmail">sarah.johnson@university.edu</p>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="detail-group">
+                                    <label>Program</label>
+                                    <p id="studentProgram">Computer Science</p>
+                                </div>
+                                <div class="detail-group">
+                                    <label>Year Level</label>
+                                    <p id="studentYear">2nd Year</p>
+                                </div>
+                                <div class="detail-group">
+                                    <label>GPA</label>
+                                    <p id="studentGPA">3.65</p>
+                                </div>
+                                <div class="detail-group">
+                                    <label>Max Units Allowed</label>
+                                    <p id="maxUnits">18</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="current-subjects">
+                            <h3>Currently Enrolled Subjects</h3>
+                            <div class="enrolled-subjects" id="enrolledSubjectsList">
+                                <div class="subject-card">
+                                    <h4>CS201</h4>
+                                    <p>Data Structures</p>
+                                    <p class="units">3 Units</p>
+                                </div>
+                                <div class="subject-card">
+                                    <h4>CS210</h4>
+                                    <p>Algorithms</p>
+                                    <p class="units">3 Units</p>
+                                </div>
+                                <div class="subject-card">
+                                    <h4>MATH255</h4>
+                                    <p>Linear Algebra</p>
+                                    <p class="units">3 Units</p>
+                                </div>
+                                <div class="subject-card">
+                                    <h4>ENG104</h4>
+                                    <p>Technical Writing</p>
+                                    <p class="units">3 Units</p>
+                                </div>
+                            </div>
+                            <p class="total-units">Total Units: <span id="currentTotalUnits">12</span>/<span id="maxAllowedUnits">18</span></p>
+                        </div>
+                        
+                        <div class="recommendations">
+                            <h3>Recommended Subjects</h3>
+                            <div class="recommended-subjects" id="recommendedSubjectsList">
+                                <!-- Will be populated from the subject list -->
+                            </div>
+                            
+                            <div class="advise-actions">
+                                <button class="btn btn-secondary" onclick="clearRecommendations()">Clear</button>
+                                <button class="btn btn-primary" onclick="sendRecommendations()">Send Recommendations</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column - Subject Section -->
+            <div class="subject-section">
+                <h2>Available Subjects</h2>
+                <div class="search-bar">
+                    <input type="text" id="subjectSearch" placeholder="Search subjects...">
+                    <button class="btn btn-primary" onclick="searchSubjects()">Search</button>
+                </div>
+                
+                <div class="card-body px-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-dark">
+                            <thead class="table-light">
                                 <tr>
+                                    <th>Subject Code</th>
                                     <th>Subject</th>
+                                    <th>Course</th>
+                                    <th>Units</th>
                                     <th>Room</th>
-                                    <th>Day</th>
                                     <th>Time</th>
-                                    <th>Actions</th>
+                                    <th>Day</th>
+                                    <th>Year Level</th>
+                                    <th>Semester</th>
+                                    <th>Instructor Name</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for schedule in schedules %}
-                                <tr{% if schedule.Day == current_day %} class="highlight-today"{% endif %}>
-                                    <td>{{ schedule.Subject_Name }}</td>
-                                    <td>{{ schedule.Room_Number }}</td>
-                                    <td>{{ schedule.Day }}</td>
-                                    <td>{{ schedule.Start.strftime('%I:%M %p') }} - {{ schedule.End.strftime('%I:%M %p') }}</td>
+                                {% for subject in subjects %}
+                                <tr>
+                                    <td>{{ subject.Sub_code }}</td>
+                                    <td>{{ subject.subject_name }}</td>
+                                    <td>{{ subject.course }}</td>
+                                    <td>{{ subject.units }}</td>
+                                    <td>{{ subject.room }}</td>
+                                    <td>{{ subject.start_time }} - {{ subject.end_time }}</td>
+                                    <td>{{ subject.day_of_week }}</td>
+                                    <td>{{ subject.year }}</td>
+                                    <td>{{ subject.semester }}</td>
+                                    <td>{{ subject.instructor_name }}</td>
                                     <td>
-                                        <form action="{{ url_for('drop_schedule', schedule_id=schedule.Sched_ID) }}" method="POST" style="display: inline;">
-                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to drop this schedule?')">
-                                                <i class='bx bx-trash'></i> Drop
-                                            </button>
-                                        </form>
+                                        <button class="btn btn-warning btn-sm" onclick="recommendSubject('{{ subject.Sub_code }}', '{{ subject.subject_name }}', {{ subject.units }})">
+                                            Recommend
+                                        </button>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -82,61 +172,10 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Add Schedule Form -->
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h4>Add Schedule</h4>
-                    </div>
-                    <div class="card-body">
-                        <form action="{{ url_for('instructor_dashboard') }}" method="POST">
-                            <div class="mb-3">
-                                <label for="subject_id" class="form-label">Subject</label>
-                                <select class="form-select" id="subject_id" name="subject_id" required>
-                                    <option value="">Select Subject</option>
-                                    {% for subject in subjects %}
-                                    <option value="{{ subject.Subject_ID }}">{{ subject.Subject_Name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="room_id" class="form-label">Room</label>
-                                <select class="form-select" id="room_id" name="room_id" required>
-                                    <option value="">Select Room</option>
-                                    {% for room in rooms %}
-                                    <option value="{{ room.Room_ID }}">{{ room.Room_Number }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="day" class="form-label">Day</label>
-                                <select class="form-select" id="day" name="day" required>
-                                    <option value="">Select Day</option>
-                                    <option value="Monday">Monday</option>
-                                    <option value="Tuesday">Tuesday</option>
-                                    <option value="Wednesday">Wednesday</option>
-                                    <option value="Thursday">Thursday</option>
-                                    <option value="Friday">Friday</option>
-                                    <option value="Saturday">Saturday</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="start_time" class="form-label">Start Time</label>
-                                <input type="time" class="form-control" id="start_time" name="start_time" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="end_time" class="form-label">End Time</label>
-                                <input type="time" class="form-control" id="end_time" name="end_time" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Add Schedule</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="{{ url_for('static', filename='js/instructor_dashboard.js') }}"></script>
+</body>
 </body>
 </html>

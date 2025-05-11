@@ -9,7 +9,7 @@
 <body>
     <div class="card p-4" style="background-color: #2b2b2b; border: 1px solid #444;">
         <div class="card-header bg-primary text-white py-3">
-            <h5 class="mb-0">Subject List</h5>
+            <h5 class="mb-0">Open Subject List</h5>
             <span class="badge bg-light text-dark">{{ subjects | length }} Total</span>
         </div>
         <div class="card-body px-0">
@@ -18,22 +18,36 @@
                     <thead class="table-light">
                         <tr>
                             <th>Subject Code</th>
-                            <th>Subject Name</th>
+                            <th>Subject</th>
+                            <th>Course</th>
                             <th>Units</th>
+                            <th>Room</th>
                             <th>Time</th>
                             <th>Day</th>
                             <th>Year Level</th>
                             <th>Semester</th>
+                            <th>Instructor Name</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for subject in subjects %}
                         <tr>
-                            <td>{{ subject.subject_code }}</td>
-                            <td>{{ subject.subject }}</td>
-                            <td>{{ subject.course_id }}</td>
+                            <td>{{ subject.Sub_code }}</td>
+                            <td>{{ subject.subject_name }}</td>
+                            <td>{{ subject.course }}</td>
+                            <td>{{ subject.units }}</td>
+                            <td>{{ subject.room }}</td>
+                            <td>{{ subject.start_time }} - {{ subject.end_time }}</td>
+                            <td>{{ subject.day_of_week }}</td>
                             <td>{{ subject.year }}</td>
                             <td>{{ subject.semester }}</td>
+                            <td>{{ subject.instructor_name }}</td>
+                            <td>
+                                <form action="{{ url_for('remove_subject', subject_id=subject.sub_avail_id) }}" method="POST">
+                                    <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                </form>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
