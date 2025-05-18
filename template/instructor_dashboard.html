@@ -44,9 +44,11 @@
                                    oninput="handleSearchInput(this.value)">
                             <button class="btn btn-primary" onclick="searchStudent()">Search</button>
                         </div>
+                        <!-- Search results container -->
                         <div id="searchResults" class="search-results d-none">
-                            <!-- Search results go here -->
+                            <!-- Results will be populated here -->
                         </div>
+                        <!-- Student details section -->
                         <div id="studentInfo" class="d-none">
                             <h6>Student Details</h6>
                             <div id="studentDetails" class="border p-3 rounded mb-3 student-card" onclick="toggleEnrollmentSection(this)">
@@ -58,10 +60,10 @@
                                 </div>
                                 <div class="enrollment-section d-none">
                                     <hr>
-                                    <h6 class="mt-3">Currently Enrolled Subjects</h6>
+                                    <h6 class="mt-3">Enrolled Subjects</h6>
                                     <div class="table-responsive">
-                                        <table class="table table-sm table-bordered">
-                                            <thead class="table-light">
+                                        <table class="table table-sm">
+                                            <thead>
                                                 <tr>
                                                     <th>Subject Code</th>
                                                     <th>Subject Name</th>
@@ -72,12 +74,12 @@
                                                 </tr>
                                             </thead>
                                             <tbody id="enrolledSubjects">
-                                                <!-- Will be populated dynamically -->
+                                                <!-- Enrolled subjects will be populated here dynamically -->
                                             </tbody>
-                                            <tfoot class="table-light">
+                                            <tfoot>
                                                 <tr>
                                                     <td colspan="4" class="text-end"><strong>Total Units:</strong></td>
-                                                    <td id="totalUnits" class="fw-bold">0</td>
+                                                    <td id="totalUnits">0</td>
                                                     <td></td>
                                                 </tr>
                                             </tfoot>
@@ -97,6 +99,7 @@
                     </div>
                 </div>
             </div>
+            
 
             <!-- Subject Recommendation Section -->
             <div class="col-md-8">
@@ -132,7 +135,7 @@
                                 <tbody id="availableSubjects">
                                     {% for subject in subjects %}
                                     <tr data-schedule="{{ subject.day_of_week }},{{ subject.start_time }},{{ subject.end_time }}" 
-                                        data-subj-avail-id="{{ subject.subj_avail_id }}">
+                                        data-subject-id="{{ subject.subj_avail_id }}">
                                         <td>{{ subject.Sub_code }}</td>
                                         <td>{{ subject.subject_name }}</td>
                                         <td>{{ subject.day_of_week }} {{ subject.start_time }}-{{ subject.end_time }}</td>
@@ -140,7 +143,7 @@
                                         <td>{{ subject.units }}</td>
                                         <td id="status-{{ subject.Sub_code }}">
                                             <button class="btn btn-primary btn-sm" 
-                                                    onclick="enlistSubject('{{ subject.subj_avail_id }}')">
+                                                    onclick="enlistSubject('{{ subject.subj_avail_id }}', '{{ subject.subject_name }}')">
                                                 Enlist
                                             </button>
                                         </td>
@@ -154,24 +157,11 @@
             </div>
         </div>
     </div>
-
+    
     <!-- Enlistment Modal -->
-    <div class="modal fade" id="enlistModal" tabindex="-1" aria-labelledby="enlistModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="enlistModalLabel">Enlist New Subject</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Your enlistment form goes here -->
-                </div>
-            </div>
-        </div>
+    
     </div>
-
     <script src="{{ url_for('static', filename='js/instructor_dashboard.js') }}"></script>
-
     <style>
         .search-results {
             position: absolute;

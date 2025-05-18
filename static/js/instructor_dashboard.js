@@ -489,28 +489,38 @@ function showEnlistmentModal() {
   }
 }
 
-function enlistSubject(subjectId, studentUsn) {
-  fetch("/instructor/enlist_subject", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: `subject_id=${subjectId}&student_id=${studentUsn}`,
+function enlistSubject(subjectId, subjectName) {
+  if (!selectedStudent) {
+    alert("Please select a student first");
+    return;
+  }
+
+  // Prepare the form data
+  const formData = new URLSearchParams();
+  formData.append('student_id', selectedStudent.usn);
+  formData.append('subj_avail_id', subjectId);
+
+  fetch('/instructor/enlist_subject', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData
   })
-    .then((response) => response.json())
-    .then((data) => {
+  .then(response => response.json())
+  .then(data => {
       if (data.success) {
-        alert("Subject enlisted successfully!");
-        // Refresh the enrolled subjects list
-        updateEnrolledSubjects(studentUsn);
+          alert(`Successfully enlisted in ${subjectName}`);
+          // Refresh the enrolled subjects list
+          updateEnrolledSubjects(selectedStudent.usn);
       } else {
-        alert(data.message || "Error enlisting subject");
+          alert(data.message || 'Error enlisting in subject');
       }
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-      alert("Error enlisting subject");
-    });
+  })
+  .catch(error => {
+      console.error('Error:', error);
+      alert('Error enlisting in subject');
+  });
 }
 
 function updateEnrolledSubjects(subjects) {
