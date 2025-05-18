@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
+import datetime
 
     
 app = Flask(__name__, template_folder="template")
@@ -37,7 +38,6 @@ def login():
     return render_template('login.html', message=message)
 
 
-
 # Logout Route
 @app.route('/logout')
 def logout():
@@ -45,7 +45,6 @@ def logout():
     session.pop('username', None)
     session.pop('usertype', None)
     return redirect(url_for('login'))   
-
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -118,7 +117,6 @@ def register():
     return render_template('register.html', message=message, accounts=accounts)
 
 
-
 @app.route('/available_sub')
 def Available_sub():
     if 'usertype' in session and session['usertype'] == 'admin':
@@ -136,7 +134,6 @@ def Available_sub():
         cursor.close()
         return render_template('Available_sub.html', subjects=subjects)
     return redirect(url_for('login'))
-
 
 
 @app.route('/admin_dashboard', methods=['GET', 'POST'])
@@ -211,21 +208,10 @@ def remove_subject(subject_id):
     return redirect(url_for('login'))
 
 
-
-
-@app.route('/student_dashboard')
-def student_dashboard():
-    if 'usertype' in session and session['usertype'] == 'admin':
-        
-        return render_template('student_dashboard.html')
-    return redirect(url_for('login'))
-
-
-
 @app.route('/instructor_dashboard')
 def instructor_dashboard():
     if 'usertype' in session and session['usertype'] == 'instructor':
-        cur = mysql.connection.cursor()
+        cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cur.execute("""
             SELECT sa.*, 
                    i.name AS instructor_name,
@@ -239,35 +225,346 @@ def instructor_dashboard():
         return render_template('instructor_dashboard.html', subjects=subjects)
     return redirect(url_for('login'))
 
+
 @app.route('/instructor/get_student', methods=['POST'])
 def get_student():
-    student_id = request.form['student_id']
-    cur = mysql.connection.cursor()
+    if 'usertype' not in session or session['usertype'] != 'instructor':
+        return jsonify({'error': 'Unauthorized access'}), 403
+    
+    try:
+        student_search = request.form.get('student_search')
+        if not student_search:
+            return jsonify({'error': 'Please enter a Student Name'}), 400
 
-    # Get student basic info
-    cur.execute("SELECT * FROM student WHERE student_id = %s", (student_id,))
-    student = cur.fetchone()
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        
+        # Search by name only
+        cursor.execute('SELECT * FROM student WHERE name LIKE %s', (f'%{student_search}%',))
+        students = cursor.fetchall()
+        if not students:
+            return jsonify({'error': 'Student not found'}), 404
+        
+        student = students[0]  # Take first match
+        
+        # Get enrolled subjects
+        cursor.execute("""
+            SELECT s.subject, sa.room, sa.day_of_week, 
+                   sa.start_time, sa.end_time
+            FROM student_subject ss
+            JOIN subj_avail sa ON ss.subj_avail_id = sa.sub_avail_id
+            JOIN subject s ON sa.subject_id = s.subject_id
+            WHERE ss.student_id = %s
+        """, (student['USN'],))
+        enrolled_subjects = cursor.fetchall()
+        
+        # Convert time objects to strings
+        for subject in enrolled_subjects:
+            if subject['start_time'] is not None:
+                subject['start_time'] = str(subject['start_time'])
+            if subject['end_time'] is not None:
+                subject['end_time'] = str(subject['end_time'])
+        
+        return jsonify({
+            'success': True,
+            'student': {
+                'usn': student['USN'],
+                'name': student['name']
+            },
+            'enrolled_subjects': enrolled_subjects
+        })
+        
+    except Exception as e:
+        return jsonify({'error': 'Error fetching student data'}), 500
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
 
-    # Get student's enrolled subjects
+
+@app.route('/instructor/check_time_conflict', methods=['POST'])
+def check_time_conflict():
+    """
+    Check if there's a time conflict between a new subject and existing enrolled subjects
+    """
+    if 'usertype' not in session or session['usertype'] != 'instructor':
+        return jsonify({'error': 'Unauthorized access'}), 403
+        
+    student_id = request.form.get('student_id')
+    subj_avail_id = request.form.get('subj_avail_id')
+    day_of_week = request.form.get('day_of_week')
+    start_time = request.form.get('start_time')
+    end_time = request.form.get('end_time')
+    
+    # Split days if multiple days are selected (e.g., "Monday, Wednesday")
+    days = [day.strip() for day in day_of_week.split(',')]
+    
+    # Convert time strings to datetime.time objects for comparison
+    try:
+        start_time_obj = datetime.datetime.strptime(start_time, '%H:%M:%S').time()
+        end_time_obj = datetime.datetime.strptime(end_time, '%H:%M:%S').time()
+    except ValueError:
+        try:
+            # Try alternative time format
+            start_time_obj = datetime.datetime.strptime(start_time, '%H:%M').time()
+            end_time_obj = datetime.datetime.strptime(end_time, '%H:%M').time()
+        except ValueError:
+            return jsonify({'error': 'Invalid time format'}), 400
+    
+    # Get student's currently enrolled subjects
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cur.execute("""
-        SELECT s.subject_id, s.subject, sa.room, sa.day_of_week, sa.start_time, sa.end_time
+        SELECT sa.subj_avail_id, sa.day_of_week, sa.start_time, sa.end_time, s.subject
         FROM student_subject ss
         JOIN subj_avail sa ON ss.subj_avail_id = sa.subj_avail_id
         JOIN subject s ON sa.subject_id = s.subject_id
         WHERE ss.student_id = %s
     """, (student_id,))
     enrolled_subjects = cur.fetchall()
-
     cur.close()
+    
+    # Check for time conflicts
+    for enrolled in enrolled_subjects:
+        enrolled_days = [day.strip() for day in enrolled['day_of_week'].split(',')]
+        
+        # Convert enrolled subject times to datetime.time objects
+        try:
+            enrolled_start = datetime.datetime.strptime(str(enrolled['start_time']), '%H:%M:%S').time()
+            enrolled_end = datetime.datetime.strptime(str(enrolled['end_time']), '%H:%M:%S').time()
+        except ValueError:
+            try:
+                enrolled_start = datetime.datetime.strptime(str(enrolled['start_time']), '%H:%M').time()
+                enrolled_end = datetime.datetime.strptime(str(enrolled['end_time']), '%H:%M').time()
+            except ValueError:
+                # Skip this subject if time format can't be parsed
+                continue
+        
+        # Check if there's any day overlap
+        day_overlap = any(day in enrolled_days for day in days)
+        if day_overlap:
+            # Check for time conflict (new start time falls during enrolled class or vice versa)
+            time_conflict = (
+                (start_time_obj <= enrolled_end and end_time_obj >= enrolled_start) or
+                (enrolled_start <= end_time_obj and enrolled_end >= start_time_obj)
+            )
+            
+            if time_conflict:
+                return jsonify({
+                    'has_conflict': True,
+                    'conflict_subject': enrolled['subject'],
+                    'conflict_day': enrolled['day_of_week'],
+                    'conflict_time': f"{enrolled['start_time']} - {enrolled['end_time']}"
+                })
+    
+    # No conflicts found
+    return jsonify({'has_conflict': False})
 
-    if student:
-        return jsonify({'student': student, 'enrolled_subjects': enrolled_subjects})
-    else:
-        return jsonify({'error': 'Student not found'}), 404
+
+@app.route('/instructor/enlist_subject', methods=['POST'])
+def enlist_subject():
+    if session.get('usertype') != 'instructor':
+        return jsonify({'error': 'Unauthorized access'}), 403
+
+    print("Received form data:", request.form)
+
+    student_usn = request.form.get('student_id', '').strip()
+    subj_avail_id = request.form.get('subj_avail_id', '').strip()
+
+    if not student_usn:
+        return jsonify({'success': False, 'message': 'Student USN is required'}), 400
+    if not subj_avail_id:
+        return jsonify({'success': False, 'message': 'Subject availability ID is required'}), 400
+
+    try:
+        cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+        # Get student ID
+        cur.execute("SELECT student_id FROM student WHERE USN = %s", (student_usn,))
+        student = cur.fetchone()
+        if not student:
+            return jsonify({'success': False, 'message': 'Student not found'}), 404
+        student_id = student['student_id']
+
+        # Check subject availability exists
+        cur.execute("SELECT * FROM subj_avail WHERE subj_avail_id = %s", (subj_avail_id,))
+        subject = cur.fetchone()
+        if not subject:
+            return jsonify({'success': False, 'message': 'Subject not found'}), 404
+
+        # Check for duplicate enrollment
+        cur.execute(
+            "SELECT 1 FROM student_subject WHERE student_id = %s AND subj_avail_id = %s",
+            (student_id, subj_avail_id)
+        )
+        if cur.fetchone():
+            return jsonify({'success': False, 'message': 'Student already enrolled in this subject'}), 400
+
+        # Insert enrollment
+        cur.execute(
+            "INSERT INTO student_subject (student_id, subj_avail_id) VALUES (%s, %s)",
+            (student_id, subj_avail_id)
+        )
+        mysql.connection.commit()
+
+        # Return subject details
+        cur.execute("""
+            SELECT sa.Sub_code, s.subject AS subject_name, sa.room, sa.units,
+                   sa.day_of_week, sa.start_time, sa.end_time
+            FROM subj_avail sa
+            JOIN subject s ON sa.subject_id = s.subject_id
+            WHERE sa.subj_avail_id = %s
+        """, (subj_avail_id,))
+        subject_details = cur.fetchone()
+
+        return jsonify({
+            'success': True,
+            'message': 'Successfully enlisted in subject',
+            'subject': subject_details
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': f'An error occurred: {str(e)}'}), 500
+
+    finally:
+        if 'cur' in locals():
+            cur.close()
 
 
 
 
+@app.route('/instructor/get_subject_students/<int:subj_avail_id>')
+def get_subject_students(subj_avail_id):
+    """
+    Get all students enrolled in a specific subject
+    """
+    if 'usertype' not in session or session['usertype'] != 'instructor':
+        return jsonify({'error': 'Unauthorized access'}), 403
+        
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cur.execute("""
+        SELECT s.student_id, s.name, s.course, s.year, ss.date_enrolled
+        FROM student_subject ss
+        JOIN student s ON ss.student_id = s.student_id
+        WHERE ss.subj_avail_id = %s
+        ORDER BY s.name
+    """, (subj_avail_id,))
+    students = cur.fetchall()
+    cur.close()
+    
+    return jsonify({'students': students})
+
+
+@app.route('/instructor/remove_enrollment', methods=['POST'])
+def remove_enrollment():
+    """
+    Remove a student from a subject
+    """
+    if 'usertype' not in session or session['usertype'] != 'instructor':
+        return jsonify({'error': 'Unauthorized access'}), 403
+
+    student_id = request.form.get('student_id')
+    subj_avail_id = request.form.get('subj_avail_id')
+
+    if not student_id or not subj_avail_id:
+        return jsonify({
+            'success': False,
+            'message': 'Missing student ID or subject availability ID.'
+        }), 400
+
+    try:
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(
+            "DELETE FROM student_subject WHERE student_id = %s AND subj_avail_id = %s",
+            (student_id, subj_avail_id)
+        )
+        mysql.connection.commit()
+        cursor.close()
+
+        return jsonify({
+            'success': True,
+            'message': 'Student successfully unenrolled from subject.'
+        })
+    except Exception as e:
+        print(f"Error in remove_enrollment: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'An error occurred while trying to remove enrollment.'
+        }), 500
+
+
+
+@app.route('/instructor/get_available_subjects', methods=['POST'])
+def get_available_subjects():
+    if 'usertype' not in session or session['usertype'] != 'instructor':
+        return jsonify({'error': 'Unauthorized access'}), 403
+    
+    try:
+        student_id = request.form.get('student_id', '').strip()
+        print(f"Raw student_id received: '{student_id}'")
+        
+        if not student_id:
+            return jsonify({'error': 'Student ID is required'}), 400
+        
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        
+        # Updated query with explicit column selection and better joins
+        query = """
+            SELECT 
+                CAST(sa.subj_avail_id AS UNSIGNED) as subj_avail_id,
+                sa.Sub_code,
+                s.subject as subject_name,
+                sa.day_of_week,
+                TIME_FORMAT(sa.start_time, '%H:%i') as start_time,
+                TIME_FORMAT(sa.end_time, '%H:%i') as end_time,
+                sa.room,
+                sa.units
+            FROM subj_avail sa
+            INNER JOIN subject s ON sa.subject_id = s.subject_id
+            WHERE sa.subj_avail_id NOT IN (
+                SELECT DISTINCT ss.subj_avail_id 
+                FROM student_subject ss 
+                WHERE ss.student_id = %s
+            )
+            ORDER BY sa.subj_avail_id
+        """
+        
+        cursor.execute(query, (student_id,))
+        subjects = cursor.fetchall()
+        print(f"Found {len(subjects)} subjects")
+        
+        # Format and validate the subjects
+        formatted_subjects = []
+        for subject in subjects:
+            try:
+                subject_data = {
+                    'subj_avail_id': int(subject['subj_avail_id']),
+                    'Sub_code': subject['Sub_code'],
+                    'subject_name': subject['subject_name'],
+                    'day_of_week': subject['day_of_week'],
+                    'start_time': subject['start_time'],
+                    'end_time': subject['end_time'],
+                    'room': subject['room'],
+                    'units': subject['units']
+                }
+                formatted_subjects.append(subject_data)
+                print(f"Processed subject: {subject_data}")
+            except (TypeError, ValueError) as e:
+                print(f"Error processing subject {subject}: {e}")
+                continue
+        
+        return jsonify({
+            'success': True,
+            'subjects': formatted_subjects
+        })
+        
+    except Exception as e:
+        print(f"Error in get_available_subjects: {str(e)}")
+        return jsonify({'error': f'Error fetching available subjects: {str(e)}'}), 500
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+    
+        
 
 @app.route('/student_list')
 def student_list():
@@ -278,8 +575,6 @@ def student_list():
         cursor.close()
         return render_template('student_list.html', students=student)
     return redirect(url_for('login'))
-
-
 
 @app.route('/subject_list')
 def subject_list():
@@ -292,6 +587,41 @@ def subject_list():
     return redirect(url_for('login'))
 
 
+@app.route('/get_enrolled_subjects/<int:student_id>')
+def get_enrolled_subjects(student_id):
+    # Replace with your actual database query
+    cursor = mysql.connection.cursor(dictionary=True)
+    query = """
+        SELECT e.enrollment_id, s.Sub_code, s.subject_name, 
+               sa.day_of_week, sa.start_time, sa.end_time, 
+               sa.room, s.units
+        FROM enrollments e
+        JOIN subject_availability sa ON e.subj_avail_id = sa.subj_avail_id
+        JOIN subjects s ON sa.Sub_code = s.Sub_code
+        WHERE e.student_id = %s
+    """
+    cursor.execute(query, (student_id,))
+    subjects = cursor.fetchall()
+    cursor.close()
+    
+    return jsonify({'subjects': subjects})
+
+@app.route('/drop_subject/<int:enrollment_id>', methods=['POST'])
+def drop_subject(enrollment_id):
+    try:
+        cursor = mysql.connection.cursor()
+        # Get student_id before deleting the enrollment
+        cursor.execute("SELECT student_id FROM enrollments WHERE enrollment_id = %s", (enrollment_id,))
+        student_id = cursor.fetchone()[0]
+        
+        # Delete the enrollment
+        cursor.execute("DELETE FROM enrollments WHERE enrollment_id = %s", (enrollment_id,))
+        mysql.connection.commit()
+        cursor.close()
+        
+        return jsonify({'success': True, 'student_id': student_id})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
 if __name__ == "__main__":
     app.run(debug=True, port=81)
