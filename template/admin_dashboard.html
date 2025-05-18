@@ -184,7 +184,45 @@
   </div>
 </div>
 {% endfor %}
->
+
+<!-- JavaScript for Filters -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const filters = {
+        course: document.getElementById('courseFilter'),
+        year: document.getElementById('yearFilter'),
+        semester: document.getElementById('semesterFilter'),
+        search: document.getElementById('subjectSearch')
+    };
+
+    let timeoutId;
+
+    const applyFilters = () => {
+        const params = new URLSearchParams(window.location.search);
+
+        Object.entries(filters).forEach(([key, element]) => {
+            if (element.value) {
+                params.set(key, element.value.trim());
+            } else {
+                params.delete(key);
+            }
+        });
+
+        window.location.href = `${window.location.pathname}?${params.toString()}`;
+    };
+
+    filters.search.addEventListener('input', () => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(applyFilters, 500);
+    });
+
+    Object.values(filters).forEach(element => {
+        if (element !== filters.search) {
+            element.addEventListener('change', applyFilters);
+        }
+    });
+});
+</script>
 
 <!-- Styling -->
 <style>
