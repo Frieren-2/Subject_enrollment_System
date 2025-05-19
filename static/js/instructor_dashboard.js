@@ -313,28 +313,53 @@ function checkTimeConflicts() {
     return;
   }
 
+  console.log("Checking conflicts with enrolled schedules:", enrolledSchedules);
+
   const availableSubjects = document.querySelectorAll("#availableSubjects tr");
   availableSubjects.forEach((row) => {
-    // Get schedule data from the row
-    const dayOfWeek = row.cells[2].textContent.split(" ")[0]; // Get day from schedule column
-    const [startTime, endTime] = row.cells[2].textContent
-      .split(" ")[1]
-      .split("-");
+    // Get schedule from the row
+    const scheduleText = row.cells[2].textContent;
+    console.log("Checking schedule:", scheduleText);
 
-    const hasConflict = enrolledSchedules.some((enrolled) => {
-      // Split enrolled days if multiple
-      const enrolledDays = enrolled.day_of_week.split(",").map((d) => d.trim());
+    // Parse schedule text (e.g., "Monday 09:00-10:30")
+    const scheduleMatch = scheduleText.match(
+      /([A-Za-z,]+)\s+(\d{1,2}:\d{2})-(\d{1,2}:\d{2})/
+    );
+    if (!scheduleMatch) {
+      console.log("Invalid schedule format:", scheduleText);
+      return;
+    }
 
-      // Check if days overlap
-      if (!enrolledDays.includes(dayOfWeek)) return false;
+    const days = scheduleMatch[1].split(",").map((day) => day.trim());
+    const startTime = scheduleMatch[2];
+    const endTime = scheduleMatch[3];
 
-      // Convert times to minutes for comparison
-      const newStart = timeToMinutes(startTime);
-      const newEnd = timeToMinutes(endTime);
-      const enrolledStart = timeToMinutes(enrolled.start_time);
-      const enrolledEnd = timeToMinutes(enrolled.end_time);
+    console.log(
+      `Parsed schedule - Days: ${days}, Time: ${startTime}-${endTime}`
+    );
 
-      return newStart < enrolledEnd && newEnd > enrolledStart;
+    const hasConflict = days.some((day) => {
+      return enrolledSchedules.some((enrolled) => {
+        const enrolledDays = enrolled.day_of_week
+          .split(",")
+          .map((d) => d.trim());
+
+        if (!enrolledDays.includes(day)) {
+          return false;
+        }
+
+        const newStart = convertTimeToMinutes(startTime);
+        const newEnd = convertTimeToMinutes(endTime);
+        const enrolledStart = convertTimeToMinutes(enrolled.start_time);
+        const enrolledEnd = convertTimeToMinutes(enrolled.end_time);
+
+        console.log(`Comparing times for ${day}:`, {
+          new: `${newStart}-${newEnd}`,
+          enrolled: `${enrolledStart}-${enrolledEnd}`,
+        });
+
+        return newStart < enrolledEnd && newEnd > enrolledStart;
+      });
     });
 
     // Update row status and button
@@ -342,8 +367,10 @@ function checkTimeConflicts() {
     const statusCell = row.querySelector("td:last-child") || row.insertCell();
 
     if (hasConflict) {
-      statusCell.innerHTML = '<span class="badge bg-danger">Conflict</span>';
+      statusCell.innerHTML =
+        '<span class="badge bg-danger">Schedule Conflict</span>';
       enlistButton.disabled = true;
+      console.log("Conflict detected for:", scheduleText);
     } else {
       statusCell.innerHTML = '<span class="badge bg-success">Available</span>';
       enlistButton.disabled = false;
@@ -351,18 +378,81 @@ function checkTimeConflicts() {
   });
 }
 
-function timeToMinutes(timeStr) {
+function convertTimeToMinutes(timeStr) {
   const [hours, minutes] = timeStr.split(":").map(Number);
-  return hours * 60 + (minutes || 0);
+  return hours * 60 + minutes;
 }
 
-// Add event listener for conflict checking
-document.addEventListener("DOMContentLoaded", () => {
-  const conflictCheck = document.getElementById("conflictCheck");
-  if (conflictCheck) {
-    conflictCheck.addEventListener("change", checkTimeConflicts);
+// Update the searchStudent function to properly store enrolled schedules
+function searchStudent() {
+  const searchValue = document.getElementById("studentSearch").value.trim();
+  if (!searchValue) {
+    alert("Please enter a Student USN or Name");
+    return;
   }
-});
+
+  // Show loading state
+  document.getElementById("studentInfo").classList.add("d-none");
+
+  fetch("/instructor/get_student", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: `student_search=${encodeURIComponent(searchValue)}`,
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.error) {
+        alert(data.error);
+        return;
+      }
+
+      selectedStudent = data.student; // Store selected student
+      enrolledSchedules = data.enrolled_subjects;
+      console.log("Retrieved enrolled schedules:", enrolledSchedules);
+
+      // Show student info section
+      const studentInfo = document.getElementById("studentInfo");
+      studentInfo.classList.remove("d-none");
+
+      // Update student details
+      document.getElementById("studentUSN").textContent = data.student.usn;
+      document.getElementById("studentName").textContent = data.student.name;
+
+      // Update enrolled subjects
+      updateEnrolledSubjects(data.student.usn);
+      setTimeout(checkTimeConflicts, 100); // Check conflicts after DOM update
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      alert("An error occurred while searching for the student");
+    });
+}
+
+// Update showEnlistmentModal to check conflicts
+function showEnlistmentModal() {
+  if (!selectedStudent) return;
+
+  const availableSubjects = document.getElementById("availableSubjects");
+  if (!availableSubjects) return;
+
+  // First check conflicts
+  checkTimeConflicts();
+
+  // Then update buttons for non-conflicting subjects
+  const rows = availableSubjects.getElementsByTagName("tr");
+  for (let row of rows) {
+    const statusCell = row.querySelector("td:last-child");
+    if (statusCell && !statusCell.textContent.includes("Conflict")) {
+      const button = row.querySelector("button");
+      if (button) {
+        button.textContent = "Enlist";
+        button.disabled = false;
+      }
+    }
+  }
+}
 
 // Recommend a subject to the student
 function recommendSubject(subjectCode, subjectName) {
@@ -496,18 +586,24 @@ function toggleEnrollmentSection(card) {
 function showEnlistmentModal() {
   if (!selectedStudent) return;
 
-  // Update the available subjects table to show only subjects that can be enlisted
   const availableSubjects = document.getElementById("availableSubjects");
+  if (!availableSubjects) return;
+
+  // First check conflicts
+  checkTimeConflicts();
+
+  // Then update buttons for non-conflicting subjects
   const rows = availableSubjects.getElementsByTagName("tr");
-
   for (let row of rows) {
-    const recommendButton = row.querySelector("button");
-    recommendButton.textContent = "Enlist";
-    recommendButton.onclick = () =>
-      enlistSubject(row.dataset.subjectId, selectedStudent.usn);
+    const statusCell = row.querySelector("td:last-child");
+    if (statusCell && !statusCell.textContent.includes("Conflict")) {
+      const button = row.querySelector("button");
+      if (button) {
+        button.textContent = "Enlist";
+        button.disabled = false;
+      }
+    }
   }
-
-  checkTimeConflicts(); // Check conflicts when showing available subjects
 }
 
 function enlistSubject(subjAvailId, subjectName) {
@@ -779,9 +875,10 @@ function searchStudent() {
       }
 
       selectedStudent = data.student;
-      enrolledSchedules = data.enrolled_subjects; // Store enrolled subjects globally
+      enrolledSchedules = data.enrolled_subjects;
+      console.log("Enrolled schedules updated:", enrolledSchedules);
 
-      // Update UI
+      // Show student info and update UI
       const studentInfo = document.getElementById("studentInfo");
       studentInfo.classList.remove("d-none");
       document.getElementById("studentUSN").textContent = data.student.usn;
@@ -789,7 +886,7 @@ function searchStudent() {
 
       // Update enrolled subjects and check conflicts
       updateEnrolledSubjects(data.enrolled_subjects);
-      checkTimeConflicts(); // Check for conflicts after loading student data
+      checkTimeConflicts();
     })
     .catch((error) => {
       console.error("Error fetching student:", error);

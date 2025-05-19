@@ -300,17 +300,22 @@ def check_time_conflict():
     """
     if 'usertype' not in session or session['usertype'] != 'instructor':
         return jsonify({'error': 'Unauthorized access'}), 403
-        
+
+    # Get form data
     student_id = request.form.get('student_id')
     subj_avail_id = request.form.get('subj_avail_id')
     day_of_week = request.form.get('day_of_week')
     start_time = request.form.get('start_time')
     end_time = request.form.get('end_time')
-    
-    # Split days if multiple days are selected (e.g., "Monday, Wednesday")
-    days = [day.strip() for day in day_of_week.split(',')]
-    
-    # Convert time strings to datetime.time objects for comparison
+
+    # Validate input
+    if not all([student_id, subj_avail_id, day_of_week, start_time, end_time]):
+        return jsonify({'error': 'Missing required form data'}), 400
+
+    # Normalize day list
+    days = [day.strip().lower() for day in day_of_week.split(',')]
+
+    # Convert start and end time to time objects
     try:
         start_time_obj = datetime.datetime.strptime(start_time, '%H:%M:%S').time()
         end_time_obj = datetime.datetime.strptime(end_time, '%H:%M:%S').time()
@@ -320,7 +325,8 @@ def check_time_conflict():
             end_time_obj = datetime.datetime.strptime(end_time, '%H:%M').time()
         except ValueError:
             return jsonify({'error': 'Invalid time format'}), 400
-    
+
+    # Query existing enrolled subjects for the student
     cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cur.execute("""
         SELECT sa.subj_avail_id, sa.day_of_week, sa.start_time, sa.end_time, s.subject
@@ -329,28 +335,24 @@ def check_time_conflict():
         JOIN subject s ON sa.subject_id = s.subject_id
         WHERE ss.student_id = %s
     """, (student_id,))
-    
     existing_subjects = cur.fetchall()
     cur.close()
 
+    # Check for conflicts
     for subject in existing_subjects:
-        existing_days = [day.strip() for day in subject['day_of_week'].split(',')]
-        # Convert stored time to time objects
-        existing_start = subject['start_time']
-        existing_end = subject['end_time']
+        existing_days = [day.strip().lower() for day in subject['day_of_week'].split(',')]
 
-        if isinstance(existing_start, str):
-            try:
-                existing_start = datetime.datetime.strptime(existing_start, '%H:%M:%S').time()
-                existing_end = datetime.datetime.strptime(existingEnd, '%H:%M:%S').time()
-            except ValueError:
-                existing_start = datetime.datetime.strptime(existingStart, '%H:%M').time()
-                existing_end = datetime.datetime.strptime(existingEnd, '%H:%M').time()
-        
-        # Check for overlapping days
+        # Parse stored times
+        try:
+            existing_start = datetime.datetime.strptime(subject['start_time'], '%H:%M:%S').time()
+            existing_end = datetime.datetime.strptime(subject['end_time'], '%H:%M:%S').time()
+        except ValueError:
+            existing_start = datetime.datetime.strptime(subject['start_time'], '%H:%M').time()
+            existing_end = datetime.datetime.strptime(subject['end_time'], '%H:%M').time()
+
+        # Compare overlapping days and times
         if any(day in existing_days for day in days):
-            # Check for time overlap
-            if (start_time_obj < existing_end and end_time_obj > existing_start):
+            if start_time_obj < existing_end and end_time_obj > existing_start:
                 return jsonify({
                     'conflict': True,
                     'message': f"Time conflict with subject '{subject['subject']}' scheduled on {subject['day_of_week']} from {existing_start} to {existing_end}."
