@@ -47,6 +47,7 @@
             max-height: 300px;
             overflow-y: auto;
             border: 1px solid #dee2e6;
+            padding: 8px;
         }
 
         .search-item {
@@ -54,10 +55,14 @@
             border-bottom: 1px solid #eee;
             transition: background-color 0.2s;
             cursor: pointer;
+            margin-bottom: 8px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
         .search-item:hover {
-            background-color: #f8f9fa;
+            background-color: rgba(74, 144, 226, 0.1);
         }
 
         .search-item:last-child {
@@ -86,9 +91,15 @@
 
         .student-card {
             background: white;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .student-card:hover {
+            background-color: var(--secondary-color);
+            transform: translateX(4px);
         }
 
         .student-info {
@@ -107,6 +118,47 @@
 
         .fade-in {
             animation: fadeIn 0.3s ease-out;
+        }
+
+        .student-search-item {
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .student-search-item:hover {
+            background-color: var(--secondary-color);
+            transform: translateX(4px);
+        }
+
+        .student-clickable {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .student-info-preview {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .expand-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .student-info-header {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .student-info-header:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .expanded-content {
+            background-color: #f8f9fa;
+            border-radius: 0 0 8px 8px;
+            transition: all 0.3s ease;
         }
     </style>
 </head>
@@ -170,7 +222,22 @@
                                                     <th>Action</th>
                                                 </tr>
                                             </thead>
-                                            <tbody id="enrolledSubjects"></tbody>
+                                            <tbody id="enrolledSubjects">
+                                                {% for subject in subjects %}
+                                                <tr>
+                                                    <td>{{ subject.Sub_code }}</td>
+                                                    <td>{{ subject.subject_name }}</td>
+                                                    <td>{{ subject.day_of_week }} {{ subject.start_time }}-{{ subject.end_time }}</td>
+                                                    <td>{{ subject.room }}</td>
+                                                    <td>{{ subject.units }}</td>
+                                                    <td>
+                                                        <button class="btn btn-danger btn-sm" onclick="dropSubject({{ subject.sub_avail_id }})">
+                                                            <i class="fas fa-times"></i> Drop
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
                                             <tfoot>
                                                 <tr>
                                                     <td colspan="3" class="text-end"><strong>Total Units:</strong></td>
@@ -221,6 +288,7 @@
                                         <th>Room</th>
                                         <th>Units</th>
                                         <th>Action</th>
+                                        <th>Status</th>  <!-- Add status column -->
                                     </tr>
                                 </thead>
                                 <tbody id="availableSubjects">
@@ -233,9 +301,12 @@
                                         <td>{{ subject.units }}</td>
                                         <td>
                                             <button class="btn btn-primary btn-sm"
-                                                    onclick="enlistSubject('{{ subject.subj_avail_id }}', '{{ subject.subject_name }}')">
+                                                    onclick="enlistSubject({{ subject.sub_avail_id }}, '{{ subject.subject_name }}')">
                                                 Enlist
                                             </button>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success">Available</span>
                                         </td>
                                     </tr>
                                     {% endfor %}

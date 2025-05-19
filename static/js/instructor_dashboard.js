@@ -8,6 +8,7 @@ let enrolledSchedules = [];
 let selectedStudent = null;
 let currentLetter = "A";
 let searchTimeout;
+let selectedStudentId = null;
 
 // Initialize on page load
 window.onload = function () {
@@ -307,45 +308,63 @@ function displayStudentInfo(data) {
 }
 
 function checkTimeConflicts() {
-  if (!currentStudent || !document.getElementById("conflictCheck").checked) {
+  if (!enrolledSchedules || !Array.isArray(enrolledSchedules)) {
+    console.log("No enrolled schedules to check against");
     return;
   }
 
   const availableSubjects = document.querySelectorAll("#availableSubjects tr");
   availableSubjects.forEach((row) => {
-    const schedule = row.dataset.schedule.split(",");
-    const hasConflict = checkScheduleConflict(
-      schedule[0],
-      schedule[1],
-      schedule[2]
-    );
+    // Get schedule data from the row
+    const dayOfWeek = row.cells[2].textContent.split(" ")[0]; // Get day from schedule column
+    const [startTime, endTime] = row.cells[2].textContent
+      .split(" ")[1]
+      .split("-");
 
-    const statusCell = row.querySelector(`td[id^="status-"]`);
-    const recommendBtn = row.querySelector("button");
+    const hasConflict = enrolledSchedules.some((enrolled) => {
+      // Split enrolled days if multiple
+      const enrolledDays = enrolled.day_of_week.split(",").map((d) => d.trim());
+
+      // Check if days overlap
+      if (!enrolledDays.includes(dayOfWeek)) return false;
+
+      // Convert times to minutes for comparison
+      const newStart = timeToMinutes(startTime);
+      const newEnd = timeToMinutes(endTime);
+      const enrolledStart = timeToMinutes(enrolled.start_time);
+      const enrolledEnd = timeToMinutes(enrolled.end_time);
+
+      return newStart < enrolledEnd && newEnd > enrolledStart;
+    });
+
+    // Update row status and button
+    const enlistButton = row.querySelector("button");
+    const statusCell = row.querySelector("td:last-child") || row.insertCell();
 
     if (hasConflict) {
       statusCell.innerHTML = '<span class="badge bg-danger">Conflict</span>';
-      recommendBtn.disabled = true;
+      enlistButton.disabled = true;
     } else {
       statusCell.innerHTML = '<span class="badge bg-success">Available</span>';
-      recommendBtn.disabled = false;
+      enlistButton.disabled = false;
     }
   });
 }
 
-function checkScheduleConflict(day, startTime, endTime) {
-  return enrolledSchedules.some((enrolled) => {
-    if (enrolled.day_of_week !== day) return false;
-
-    const newStart = new Date(`2000-01-01 ${startTime}`);
-    const newEnd = new Date(`2000-01-01 ${endTime}`);
-    const enrolledStart = new Date(`2000-01-01 ${enrolled.start_time}`);
-    const enrolledEnd = new Date(`2000-01-01 ${enrolled.end_time}`);
-
-    return newStart < enrolledEnd && newEnd > enrolledStart;
-  });
+function timeToMinutes(timeStr) {
+  const [hours, minutes] = timeStr.split(":").map(Number);
+  return hours * 60 + (minutes || 0);
 }
 
+// Add event listener for conflict checking
+document.addEventListener("DOMContentLoaded", () => {
+  const conflictCheck = document.getElementById("conflictCheck");
+  if (conflictCheck) {
+    conflictCheck.addEventListener("change", checkTimeConflicts);
+  }
+});
+
+// Recommend a subject to the student
 function recommendSubject(subjectCode, subjectName) {
   if (!currentStudent) {
     alert("Please select a student first");
@@ -487,101 +506,126 @@ function showEnlistmentModal() {
     recommendButton.onclick = () =>
       enlistSubject(row.dataset.subjectId, selectedStudent.usn);
   }
+
+  checkTimeConflicts(); // Check conflicts when showing available subjects
 }
 
-function enlistSubject(subjectId, subjectName) {
-  if (!selectedStudent) {
+function enlistSubject(subjAvailId, subjectName) {
+  if (!selectedStudentId) {
     alert("Please select a student first");
     return;
   }
 
-  // Prepare the form data
-  const formData = new URLSearchParams();
-  formData.append('student_id', selectedStudent.usn);
-  formData.append('subj_avail_id', subjectId);
+  console.log(
+    `Enlisting - Student: ${selectedStudentId}, Subject: ${subjAvailId}`
+  ); // Debug log
 
-  fetch('/instructor/enlist_subject', {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: formData
-  })
-  .then(response => response.json())
-  .then(data => {
-      if (data.success) {
-          alert(`Successfully enlisted in ${subjectName}`);
-          // Refresh the enrolled subjects list
-          updateEnrolledSubjects(selectedStudent.usn);
-      } else {
-          alert(data.message || 'Error enlisting in subject');
-      }
-  })
-  .catch(error => {
-      console.error('Error:', error);
-      alert('Error enlisting in subject');
-  });
-}
+  if (!subjAvailId) {
+    alert("Subject ID is missing");
+    return;
+  }
 
-function updateEnrolledSubjects(subjects) {
-  const tbody = document.getElementById("enrolledSubjects");
-  const totalUnitsCell = document.getElementById("totalUnits");
-  tbody.innerHTML = ""; // Clear existing entries
-  let totalUnits = 0;
+  const formData = new FormData();
+  formData.append("student_id", selectedStudentId);
+  formData.append("subj_avail_id", subjAvailId);
 
-  subjects.forEach((subject) => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-            <td>${subject.Sub_code || "-"}</td>
-            <td>${subject.subject}</td>
-            <td>${subject.day_of_week} ${subject.start_time}-${
-      subject.end_time
-    }</td>
-            <td>${subject.room}</td>
-            <td class="text-center">${subject.units || "-"}</td>
-            <td class="text-center">
-                <button class="btn btn-danger btn-sm" onclick="unenrollSubject('${
-                  subject.sub_avail_id
-                }')">
-                    <i class="fas fa-times"></i> Drop
-                </button>
-            </td>
-        `;
-    tbody.appendChild(row);
-    totalUnits += parseInt(subject.units || 0);
-  });
-
-  totalUnitsCell.textContent = totalUnits;
-
-  // Show enrolled subjects section
-  document.querySelector(".enrollment-section").classList.remove("d-none");
-}
-
-function searchStudent() {
-  const searchInput = document.getElementById("studentSearch").value;
-
-  fetch("/instructor/get_student", {
+  fetch("/instructor/enlist_subject", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: `student_search=${encodeURIComponent(searchInput)}`,
+    body: formData,
   })
     .then((response) => response.json())
     .then((data) => {
       if (data.success) {
-        document.getElementById("studentUSN").textContent = data.student.usn;
-        document.getElementById("studentName").textContent = data.student.name;
-        document.getElementById("studentInfo").classList.remove("d-none");
-        updateEnrolledSubjects(data.enrolled_subjects);
+        alert(`Successfully enlisted in ${subjectName}`);
+        fetchStudentDetails(selectedStudentId); // Refresh the enrolled subjects list
       } else {
-        alert("Student not found");
+        alert(data.message || "Failed to enlist subject");
       }
     })
     .catch((error) => {
       console.error("Error:", error);
-      alert("Error searching for student");
+      alert("Error enlisting subject");
     });
+}
+
+// Unified dropSubject function
+function dropSubject(id) {
+  if (!selectedStudentId) {
+    alert("Please select a student first");
+    return;
+  }
+
+  if (!confirm("Are you sure you want to drop this subject?")) {
+    return;
+  }
+
+  fetch(`/drop_subject/${id}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        alert("Subject dropped successfully");
+        // Fetch updated student data using the stored selectedStudentId
+        fetch("/instructor/get_student", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: `student_search=${selectedStudentId}`,
+        })
+          .then((response) => response.json())
+          .then((studentData) => {
+            if (studentData.success) {
+              // Update the enrolled subjects list with new data
+              updateEnrolledSubjects(studentData.enrolled_subjects || []);
+            }
+          })
+          .catch((error) => {
+            console.error("Error refreshing student data:", error);
+          });
+      } else {
+        throw new Error(data.message || "Failed to drop subject");
+      }
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      alert(error.message);
+    });
+}
+
+function updateEnrolledSubjects(subjects) {
+  const tbody = document.getElementById("enrolledSubjects");
+  const totalUnitsElement = document.getElementById("totalUnits");
+  tbody.innerHTML = "";
+  let totalUnits = 0;
+
+  // Ensure selectedStudentId is set
+  selectedStudentId = subjects[0]?.student_id || selectedStudentId;
+
+  subjects.forEach((subject) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+          <td>${subject.Sub_code}</td>
+          <td>${subject.subject}</td>
+          <td>${subject.day_of_week}-${subject.end_time}</td>
+          <td>${subject.units}</td>
+          <td>
+              <button class="btn btn-danger btn-sm" onclick="dropSubject('${
+                subject.subj_avail_id || subject.enrollment_id
+              }', selectedStudentId)">
+                  <i class="fas fa-times"></i> Drop
+              </button>
+          </td>
+      `;
+    tbody.appendChild(row);
+    totalUnits += parseInt(subject.units || 0);
+  });
+
+  totalUnitsElement.textContent = totalUnits;
 }
 
 // Letter filter and real-time search functionality
@@ -734,35 +778,18 @@ function searchStudent() {
         return;
       }
 
-      // Show student info
-      document.getElementById("studentInfo").classList.remove("d-none");
-      document.getElementById("studentUSN").innerText = data.student.usn;
-      document.getElementById("studentName").innerText = data.student.name;
-      document.getElementById("studentProgram").innerText =
-        data.student.program || "—";
+      selectedStudent = data.student;
+      enrolledSchedules = data.enrolled_subjects; // Store enrolled subjects globally
 
-      // Populate enrolled subjects
-      const tbody = document.getElementById("enrolledSubjects");
-      tbody.innerHTML = "";
+      // Update UI
+      const studentInfo = document.getElementById("studentInfo");
+      studentInfo.classList.remove("d-none");
+      document.getElementById("studentUSN").textContent = data.student.usn;
+      document.getElementById("studentName").textContent = data.student.name;
 
-      let totalUnits = 0;
-      data.enrolled_subjects.forEach((sub) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-              <td>${sub.subject}</td>
-              <td>${sub.subject}</td>
-              <td>${sub.day_of_week} ${sub.start_time} - ${sub.end_time}</td>
-              <td>${sub.room}</td>
-              <td>3</td>
-              <td>
-                  <button class="btn btn-danger btn-sm">Drop</button>
-              </td>
-          `;
-        tbody.appendChild(row);
-        totalUnits += 3; // You can adjust this if you have real unit data
-      });
-
-      document.getElementById("totalUnits").innerText = totalUnits;
+      // Update enrolled subjects and check conflicts
+      updateEnrolledSubjects(data.enrolled_subjects);
+      checkTimeConflicts(); // Check for conflicts after loading student data
     })
     .catch((error) => {
       console.error("Error fetching student:", error);
@@ -782,13 +809,18 @@ function handleSearchInput(value) {
   }
 }
 
-function selectStudent(studentId) {
-  fetch(`/get_student_details/${studentId}`)
-    .then((response) => response.json())
-    .then((data) => {
-      displayStudentInfo(data.student);
-      fetchEnrolledSubjects(studentId);
-    });
+function selectStudent(usn, name) {
+  selectedStudentId = usn; // Make sure this is set correctly
+
+  // Update UI
+  document.getElementById("studentSearch").value = name;
+  document.getElementById("selectedStudent").classList.remove("d-none");
+  document.getElementById("studentName").textContent = name;
+  document.getElementById("studentDetails").textContent = `USN: ${usn}`;
+
+  // Hide search results and fetch details
+  hideSearchResults();
+  fetchStudentDetails(usn);
 }
 
 function fetchEnrolledSubjects(studentId) {
@@ -813,7 +845,7 @@ function displayEnrolledSubjects(subjects) {
                 <td>${subject.room}</td>
                 <td>${subject.units}</td>
                 <td>
-                    <button class="btn btn-danger btn-sm" onclick="dropSubject('${subject.enrollment_id}')">
+                    <button class="btn btn-danger btn-sm" onclick="dropSubject('${subject.enrollment_id}', selectedStudentId)">
                         <i class="fas fa-trash"></i> Drop
                     </button>
                 </td>
@@ -831,19 +863,52 @@ function calculateTotalUnits(subjects) {
   document.getElementById("totalUnits").textContent = totalUnits;
 }
 
-function dropSubject(enrollmentId) {
-  if (confirm("Are you sure you want to drop this subject?")) {
-    fetch(`/drop_subject/${enrollmentId}`, { method: "POST" })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          // Refresh the enrolled subjects list
-          fetchEnrolledSubjects(data.student_id);
-        } else {
-          alert("Failed to drop subject");
-        }
-      });
+function dropSubject(id) {
+  if (!selectedStudentId) {
+    alert("Please select a student first");
+    return;
   }
+
+  if (!confirm("Are you sure you want to drop this subject?")) {
+    return;
+  }
+
+  fetch(`/drop_subject/${id}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        alert("Subject dropped successfully");
+        // Fetch updated student data using the stored selectedStudentId
+        fetch("/instructor/get_student", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: `student_search=${selectedStudentId}`,
+        })
+          .then((response) => response.json())
+          .then((studentData) => {
+            if (studentData.success) {
+              // Update the enrolled subjects list with new data
+              updateEnrolledSubjects(studentData.enrolled_subjects || []);
+            }
+          })
+          .catch((error) => {
+            console.error("Error refreshing student data:", error);
+          });
+      } else {
+        throw new Error(data.message || "Failed to drop subject");
+      }
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      alert(error.message);
+    });
 }
 
 function filterStudents(searchTerm) {
@@ -870,36 +935,99 @@ function filterStudents(searchTerm) {
           const resultItem = document.createElement("div");
           resultItem.className = "search-item";
           resultItem.innerHTML = `
-                    <div>${student.name}</div>
-                    <small class="text-muted">${student.course} - ${student.year}Y (${student.USN})</small>
+                    <div class="student-info-header d-flex justify-content-between align-items-center p-2">
+                        <div>
+                            <div class="fw-bold">${student.name}</div>
+                            <small class="text-muted">USN: ${student.USN}</small>
+                        </div>
+                        <i class="fas fa-chevron-right expand-icon"></i>
+                    </div>
+                    <div class="expanded-content d-none p-3 border-top">
+                        <div class="mb-3">
+                            <h6>Student Details</h6>
+                            <p class="mb-1">Name: ${student.name}</p>
+                            <p class="mb-1">USN: ${student.USN}</p>
+                        </div>
+                        <button class="btn btn-primary btn-sm w-100" onclick="selectAndEnlist('${student.USN}', '${student.name}')">
+                            <i class="fas fa-plus-circle me-1"></i> Enlist Subjects
+                        </button>
+                    </div>
                 `;
-          resultItem.addEventListener("click", () => {
-            selectStudent(
-              student.student_id,
-              student.USN,
-              student.name,
-              `${student.course} - ${student.year}Y`
-            );
-            hideSearchResults();
+
+          // Add click handler for expansion
+          const header = resultItem.querySelector(".student-info-header");
+          const content = resultItem.querySelector(".expanded-content");
+          const icon = resultItem.querySelector(".expand-icon");
+
+          header.addEventListener("click", (e) => {
+            // Prevent triggering select when clicking expand
+            e.stopPropagation();
+
+            // Toggle expanded content
+            content.classList.toggle("d-none");
+            icon.style.transform = content.classList.contains("d-none")
+              ? "rotate(0deg)"
+              : "rotate(90deg)";
           });
+
           searchResults.appendChild(resultItem);
         });
       } else {
         searchResults.innerHTML = `
-                <div class="search-item text-muted">
-                    <div>No students found</div>
-                    <small>Try a different search term</small>
-                </div>`;
+                <div class="search-item text-muted">No students found</div>
+            `;
       }
     })
     .catch((error) => {
-      console.error("Search error:", error);
-      const searchResults = document.getElementById("searchResults");
-      searchResults.innerHTML = `
-            <div class="search-item text-danger">
-                <div>Error searching for students</div>
-                <small>Please try again</small>
-            </div>`;
-      searchResults.classList.remove("d-none");
+      console.error("Error:", error);
+      showToast("Error searching for students", "danger");
+    });
+}
+
+function selectAndEnlist(usn, name) {
+  selectedStudentId = usn; // Store the USN globally
+
+  // Update UI
+  document.getElementById("studentSearch").value = name;
+  document.getElementById("selectedStudent").classList.remove("d-none");
+  document.getElementById("studentName").textContent = name;
+  document.getElementById("studentDetails").textContent = `USN: ${usn}`;
+
+  // Hide search results
+  hideSearchResults();
+
+  // Fetch student details and enrolled subjects
+  fetchStudentDetails(usn);
+}
+
+function hideSearchResults() {
+  const searchResults = document.getElementById("searchResults");
+  searchResults.classList.add("d-none");
+}
+
+function fetchStudentDetails(usn) {
+  console.log("Fetching details for student:", usn); // Debug log
+
+  const formData = new FormData();
+  formData.append("student_search", usn);
+
+  fetch("/instructor/get_student", {
+    method: "POST",
+    body: formData,
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("Received student data:", data); // Debug log
+
+      if (data.success) {
+        updateEnrolledSubjects(data.enrolled_subjects || []);
+        document.getElementById("selectedStudent").classList.remove("d-none");
+      } else {
+        throw new Error(data.error || "Failed to load student details");
+      }
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      alert("Error loading student details: " + error.message);
     });
 }
