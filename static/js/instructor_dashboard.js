@@ -845,3 +845,61 @@ function dropSubject(enrollmentId) {
       });
   }
 }
+
+function filterStudents(searchTerm) {
+  if (!searchTerm || searchTerm.length < 2) {
+    hideSearchResults();
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("search", searchTerm);
+
+  fetch("/instructor/search_students", {
+    method: "POST",
+    body: formData,
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      const searchResults = document.getElementById("searchResults");
+      searchResults.innerHTML = "";
+      searchResults.classList.remove("d-none");
+
+      if (data.success && data.students && data.students.length > 0) {
+        data.students.forEach((student) => {
+          const resultItem = document.createElement("div");
+          resultItem.className = "search-item";
+          resultItem.innerHTML = `
+                    <div>${student.name}</div>
+                    <small class="text-muted">${student.course} - ${student.year}Y (${student.USN})</small>
+                `;
+          resultItem.addEventListener("click", () => {
+            selectStudent(
+              student.student_id,
+              student.USN,
+              student.name,
+              `${student.course} - ${student.year}Y`
+            );
+            hideSearchResults();
+          });
+          searchResults.appendChild(resultItem);
+        });
+      } else {
+        searchResults.innerHTML = `
+                <div class="search-item text-muted">
+                    <div>No students found</div>
+                    <small>Try a different search term</small>
+                </div>`;
+      }
+    })
+    .catch((error) => {
+      console.error("Search error:", error);
+      const searchResults = document.getElementById("searchResults");
+      searchResults.innerHTML = `
+            <div class="search-item text-danger">
+                <div>Error searching for students</div>
+                <small>Please try again</small>
+            </div>`;
+      searchResults.classList.remove("d-none");
+    });
+}

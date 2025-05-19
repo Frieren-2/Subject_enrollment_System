@@ -5,117 +5,208 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Instructor Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/instructor_dashboard.css') }}">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f5f6fa;
+            --accent-color: #5352ed;
+        }
+        
+        body {
+            background-color: var(--secondary-color);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-results-list {
+            position: absolute;
+            top: calc(100% + 5px);
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1000;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+        }
+
+        .search-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+
+        .search-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .search-item:last-child {
+            border-bottom: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-color);
+        }
+
+        .table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .table thead th {
+            background-color: var(--secondary-color);
+            border-bottom: none;
+        }
+
+        .student-card {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .student-info {
+            padding: 1.5rem;
+            background: var(--secondary-color);
+        }
+
+        .enrolled-subjects {
+            padding: 1.5rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <div class="logo">Subject Enlist</div>
-        <div class="user-info">
-            <div class="dropdown">
-                <div class="profile-trigger" onclick="toggleDropdown()">
-                    <span>{{ session.username }}</span>
-                    <div class="user-avatar">{{ session.username[:2] }}</div>
-                </div>
-                <div class="dropdown-menu" id="profileDropdown">
-                    <a href="{{ url_for('logout') }}" class="dropdown-item">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </a>
-                </div>
+    <nav class="navbar navbar-expand-lg navbar-light px-4 mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="#">
+                <i class="fas fa-graduation-cap me-2"></i>Subject Enlist
+            </a>
+            <div class="d-flex align-items-center">
+                <span class="me-3">Welcome, {{ session.username }}</span>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                </a>
             </div>
         </div>
-    </header>
+    </nav>
 
-    <div class="main-container">
-        <div class="row">
-            <!-- Student Search Section -->
+    <div class="container-fluid px-4">
+        <div class="row g-4">
+            <!-- Left Column -->
             <div class="col-md-4">
-                <div class="card">
+                <!-- Student Search Card -->
+                <div class="card mb-4">
                     <div class="card-header">
                         <h5>Student Search</h5>
                     </div>
                     <div class="card-body">
-                        <div class="input-group mb-3">
-                            <input type="text" 
-                                   id="studentSearch" 
-                                   name="student_search" 
-                                   class="form-control" 
-                                   placeholder="Enter Student Name"
-                                   oninput="handleSearchInput(this.value)">
-                            <button class="btn btn-primary" onclick="searchStudent()">Search</button>
+                        <div class="search-container mb-3">
+                            <div class="input-group">
+                                <input type="text" 
+                                       id="studentSearch" 
+                                       class="form-control" 
+                                       placeholder="Search student name..."
+                                       autocomplete="off"
+                                       oninput="filterStudents(this.value)">
+                                <button class="btn btn-primary" type="button" onclick="searchStudentByName()">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                            </div>
+                            <div id="searchResults" class="search-results-list d-none">
+                                <!-- Search results will be populated here -->
+                            </div>
                         </div>
-                        <!-- Search results container -->
-                        <div id="searchResults" class="search-results d-none">
-                            <!-- Results will be populated here -->
-                        </div>
-                        <!-- Student details section -->
-                        <div id="studentInfo" class="d-none">
-                            <h6>Student Details</h6>
-                            <div id="studentDetails" class="border p-3 rounded mb-3 student-card" onclick="toggleEnrollmentSection(this)">
-                                <div class="student-basic-info">
-                                    <p><strong>USN:</strong> <span id="studentUSN"></span></p>
-                                    <p><strong>Name:</strong> <span id="studentName"></span></p>
-                                    <p><strong>Program:</strong> <span id="studentProgram"></span></p>
-                                    <i class="fas fa-chevron-down float-end"></i>
+                        <div id="selectedStudent" class="d-none">
+                            <div class="student-card">
+                                <div class="student-info p-3">
+                                    <h6 id="studentName">Student Name</h6>
+                                    <p class="mb-0" id="studentDetails">Course & Year</p>
                                 </div>
-                                <div class="enrollment-section d-none">
-                                    <hr>
-                                    <h6 class="mt-3">Enrolled Subjects</h6>
+                                <div class="enrolled-subjects p-3 border-top">
+                                    <h6>Enrolled Subjects</h6>
                                     <div class="table-responsive">
                                         <table class="table table-sm">
                                             <thead>
                                                 <tr>
-                                                    <th>Subject Code</th>
-                                                    <th>Subject Name</th>
+                                                    <th>Code</th>
+                                                    <th>Subject</th>
                                                     <th>Schedule</th>
-                                                    <th>Room</th>
                                                     <th>Units</th>
                                                     <th>Action</th>
                                                 </tr>
                                             </thead>
-                                            <tbody id="enrolledSubjects">
-                                                <!-- Enrolled subjects will be populated here dynamically -->
-                                            </tbody>
+                                            <tbody id="enrolledSubjects"></tbody>
                                             <tfoot>
                                                 <tr>
-                                                    <td colspan="4" class="text-end"><strong>Total Units:</strong></td>
+                                                    <td colspan="3" class="text-end"><strong>Total Units:</strong></td>
                                                     <td id="totalUnits">0</td>
                                                     <td></td>
                                                 </tr>
                                             </tfoot>
                                         </table>
                                     </div>
-                                    <div class="d-flex justify-content-between align-items-center mt-2">
-                                        <button class="btn btn-primary btn-sm" onclick="showEnlistmentModal()">
-                                            <i class="fas fa-plus"></i> Enlist New Subject
-                                        </button>
-                                        <button id="doneEnlisting" class="btn btn-success btn-sm d-none" onclick="resetEnlistment()">
-                                            <i class="fas fa-check"></i> Done
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
 
-            <!-- Subject Recommendation Section -->
+            <!-- Right Column -->
             <div class="col-md-8">
+                <!-- Available Subjects Card -->
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5>Available Subjects</h5>
-                        <div class="d-flex gap-3 align-items-center">
-                            <div class="input-group" style="width: 300px;">
-                                <input type="text" id="subjectSearch" class="form-control" placeholder="Search subjects...">
-                                <button class="btn btn-outline-secondary" type="button" onclick="searchSubjects()">
-                                    <i class="fas fa-search"></i>
+                        <div class="d-flex gap-2 align-items-center">
+                            <div class="input-group">
+                                <input type="text" 
+                                       id="subjectFilter" 
+                                       class="form-control form-control-sm" 
+                                       placeholder="Filter subjects..."
+                                       autocomplete="off">
+                                <button class="btn btn-outline-secondary btn-sm" onclick="clearSubjectFilter()">
+                                    <i class="fas fa-times"></i>
                                 </button>
                             </div>
-                            <div class="form-check form-switch">
+                            <div class="form-check form-switch ms-2">
                                 <input class="form-check-input" type="checkbox" id="conflictCheck" checked>
-                                <label class="form-check-label" for="conflictCheck">Check Time Conflicts</label>
+                                <label class="form-check-label" for="conflictCheck">Check Conflicts</label>
                             </div>
                         </div>
                     </div>
@@ -134,15 +225,14 @@
                                 </thead>
                                 <tbody id="availableSubjects">
                                     {% for subject in subjects %}
-                                    <tr data-schedule="{{ subject.day_of_week }},{{ subject.start_time }},{{ subject.end_time }}" 
-                                        data-subject-id="{{ subject.subj_avail_id }}">
+                                    <tr>
                                         <td>{{ subject.Sub_code }}</td>
                                         <td>{{ subject.subject_name }}</td>
                                         <td>{{ subject.day_of_week }} {{ subject.start_time }}-{{ subject.end_time }}</td>
                                         <td>{{ subject.room }}</td>
                                         <td>{{ subject.units }}</td>
-                                        <td id="status-{{ subject.Sub_code }}">
-                                            <button class="btn btn-primary btn-sm" 
+                                        <td>
+                                            <button class="btn btn-primary btn-sm"
                                                     onclick="enlistSubject('{{ subject.subj_avail_id }}', '{{ subject.subject_name }}')">
                                                 Enlist
                                             </button>
@@ -157,46 +247,9 @@
             </div>
         </div>
     </div>
-    
-    <!-- Enlistment Modal -->
-    
-    </div>
+
+    <!-- Add Bootstrap JS before the closing body tag -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/instructor_dashboard.js') }}"></script>
-    <style>
-        .search-results {
-            position: absolute;
-            z-index: 1000;
-            width: calc(100% - 2rem);
-            max-height: 300px;
-            overflow-y: auto;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin: 0.5rem 1rem;
-        }
-        .search-item {
-            padding: 8px 12px;
-            cursor: pointer;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-        }
-        .search-item:hover {
-            background-color: #f8f9fa;
-        }
-        .search-item .student-name {
-            font-weight: bold;
-        }
-        .search-item .student-usn {
-            color: #666;
-            font-size: 0.9em;
-        }
-        .highlight {
-            background-color: #fff3cd;
-            padding: 0 2px;
-            border-radius: 2px;
-        }
-    </style>
 </body>
 </html>

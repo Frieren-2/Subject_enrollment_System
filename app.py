@@ -623,5 +623,40 @@ def drop_subject(enrollment_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/instructor/search_students', methods=['POST'])
+def search_students():
+    if 'usertype' not in session or session['usertype'] != 'instructor':
+        return jsonify({'error': 'Unauthorized access'}), 403
+
+    try:
+        search_term = request.form.get('search', '').strip()
+        
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute("""
+            SELECT 
+                student_id,
+                USN,
+                name,
+                course,
+                year,
+                program 
+            FROM student 
+            WHERE name LIKE %s 
+            ORDER BY name 
+            LIMIT 10
+        """, (f'%{search_term}%',))
+        
+        students = cursor.fetchall()
+        cursor.close()
+        
+        return jsonify({
+            'success': True,
+            'students': students
+        })
+        
+    except Exception as e:
+        print(f"Error in search_students: {str(e)}")
+        return jsonify({'error': 'Error searching students'}), 500
+
 if __name__ == "__main__":
     app.run(debug=True, port=81)
