@@ -606,20 +606,6 @@ def check_time_conflict(cur, student_id, new_subject_id):
             WHERE sub_avail_id = %s
         """, (new_subject_id,))
         new_subject = cur.fetchone()
-        # ...existing code...
-        cur.execute("""
-            SELECT sa.day_of_week, 
-                   DATE_FORMAT(sa.start_time, '%%H:%%i') as start_time,
-                   DATE_FORMAT(sa.end_time, '%%H:%%i') as end_time,
-                   sa.Sub_code,
-                   s.subject as subject_name
-            FROM student_subject ss
-            JOIN subj_avail sa ON ss.subj_avail_id = sa.sub_avail_id
-            JOIN subject s ON sa.subject_id = s.subject_id
-            WHERE ss.student_id = %s
-        """, (student_id,))
-        current_subjects = cur.fetchall()
-        
         # Parse new subject times
         new_start = datetime.datetime.strptime(new_subject['start_time'], '%H:%M').time()
         new_end = datetime.datetime.strptime(new_subject['end_time'], '%H:%M').time()
@@ -651,6 +637,39 @@ def check_time_conflict(cur, student_id, new_subject_id):
     except ValueError as e:
         print(f"Error parsing time for new subject: {e}")
         return True, f"Error processing time format: {str(e)}"
+
+@app.route('/api/instructors', methods=['GET'])
+def api_instructors():
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('SELECT name, username, password FROM admin WHERE usertype = "instructor" ORDER BY time_created DESC')
+    instructors = cursor.fetchall()
+    cursor.close()
+    return jsonify({'instructors': instructors})
+
+@app.route('/api/instructors/delete', methods=['POST'])
+def api_delete_instructor():
+    data = request.get_json()
+    username = data.get('username')
+    if not username:
+        return jsonify({'success': False, 'message': 'Username required'}), 400
+    cursor = mysql.connection.cursor()
+    cursor.execute('DELETE FROM admin WHERE username = %s AND usertype = "instructor"', (username,))
+    mysql.connection.commit()
+    cursor.close()
+    return jsonify({'success': True})
+
+@app.route('/api/instructors/update_password', methods=['POST'])
+def api_update_instructor_password():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    if not username or not password:
+        return jsonify({'success': False, 'message': 'Username and password required'}), 400
+    cursor = mysql.connection.cursor()
+    cursor.execute('UPDATE admin SET password = %s WHERE username = %s AND usertype = "instructor"', (password, username))
+    mysql.connection.commit()
+    cursor.close()
+    return jsonify({'success': True})
 
 if __name__ == "__main__":
     app.run(debug=True, port=81)

@@ -1,156 +1,92 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="card p-4" style="background-color: #2b2b2b; border: 1px solid #444;">
-  <div class="container">
-    <div class="register-container flex-fill">
-      <div class="register-card">
-        <div class="card-header">
-          <h2>Create Account</h2>
-          <p style="color: white;">Enter your details to register</p>
-        </div>
-
-        {% if message %}
-        <div class="alert {% if 'exists' in message %}alert-error{% else %}alert-success{% endif %}">
-          <span class="alert-icon">{% if 'exists' in message %}✅{% else %}❎{% endif %}</span>
-          <span class="alert-text">{{ message }}</span>
-        </div>
-        {% endif %}
-
-        <form action="{{ url_for('register') }}" method="POST">
-          <div class="form-group">
-            <label for="name" style="color: white;">Name</label>
-            <input type="text" id="name" name="name" class="form-control" placeholder="Enter your name" required>
-          </div>
-          <div class="form-group">
-            <label for="username" style="color: white;">Username</label>
-            <input type="text" id="username" name="username" class="form-control" placeholder="Enter your username" required>
-          </div>
-          <div class="form-group">
-            <label for="password" style="color: white;">Password</label>
-            <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required>
-          </div>
-          <div class="form-group">
-            <label for="confirm_password" style="color: white;">Confirm Password</label>
-            <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Confirm your password" required>
-          </div>
-          <input type="hidden" name="instructor" value="instructor" />
-          <button type="submit" class="btn btn-primary mt-3">
-            Create Account <i class="fas fa-arrow-right"></i>
-          </button>
-        </form>
-      </div>
+<div class="register-container">
+  <div class="register-card large-card shadow-lg">
+    <div class="card-header-modern">
+      <h2><i class="fas fa-user-plus"></i> Register Instructor</h2>
+      <p class="subtitle">Create a new instructor account below</p>
     </div>
-
-    <!-- Button to trigger account modal -->
-    <button class="btn btn-secondary mt-4" data-bs-toggle="modal" data-bs-target="#accountsModal">
-      <i class="fas fa-users"></i> View Registered Accounts
+    <form id="registerForm" autocomplete="off">
+      <div class="form-group">
+        <label for="name"><i class="fas fa-user"></i> Name</label>
+        <input required type="text" id="name" name="name" class="form-control" placeholder="Full Name" />
+      </div>
+      <div class="form-group">
+        <label for="username"><i class="fas fa-user-tag"></i> Username</label>
+        <input required type="text" id="username" name="username" class="form-control" placeholder="Username" />
+      </div>
+      <div class="form-group">
+        <label for="password"><i class="fas fa-lock"></i> Password</label>
+        <input required type="password" id="password" name="password" class="form-control" placeholder="Password" />
+      </div>
+      <div class="form-group">
+        <label for="confirm_password"><i class="fas fa-lock"></i> Confirm Password</label>
+        <input required type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Confirm Password" />
+        <span class="password-error" style="color:#ff7675;font-size:0.95em;"></span>
+      </div>
+      <button type="submit" class="btn btn-primary w-100 mt-2"><i class="fas fa-user-plus"></i> Register</button>
+    </form>
+    <button class="btn btn-outline-light mt-4 w-100" id="viewInstructorsBtn">
+      <i class="fas fa-users"></i> View Registered Instructors
     </button>
-
-    <!-- Registered Accounts Modal - Fixed version -->
-    <div class="modal fade" id="accountsModal" tabindex="-1" aria-labelledby="accountsModalLabel" aria-hidden="true" style="z-index: 1050;">
-      <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content" style="background-color: #2e2e2e; color: white;">
-          <div class="modal-header border-0">
-            <h5 class="modal-title" id="accountsModalLabel">Registered Accounts</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <table class="table table-dark table-bordered table-hover">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Username</th>
-                  <th>Password</th>
-                  <th>Date Created</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for account in accounts %}
-                <tr>
-                  <td>{{ account.name }}</td>
-                  <td>{{ account.username }}</td>
-                  <td>{{ account.password }}</td>
-                  <td>{{ account.time_created }}</td>
-                  <td>
-                    <button class="btn btn-sm btn-warning open-edit-modal"
-                            data-username="{{ account.username }}"
-                            data-password="{{ account.password }}"
-                            onclick="openEditModal('{{ account.username }}')">
-                      Edit
-                    </button>
-                    <form method="POST" action="{{ url_for('register') }}" class="d-inline">
-                      <input type="hidden" name="action" value="delete">
-                      <input type="hidden" name="username" value="{{ account.username }}">
-                      <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                    </form>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-          <div class="modal-footer border-0">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close & Return to Register</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Edit Password Modal - Fixed version -->
-    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true" style="z-index: 1060;">
-      <div class="modal-dialog modal-dialog-centered">
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        <div class="modal-content" style="background-color: #2e2e2e; color: white;">
-          <form method="POST" action="{{ url_for('register') }}">
-            <div class="modal-header">
-              <h5 class="modal-title" id="editModalLabel">Update Password</h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <input type="hidden" name="action" value="edit">
-              <input type="hidden" id="edit-username" name="username">
-              <div class="mb-3">
-                <label for="new_password" class="form-label">New Password</label>
-                <input type="password" name="new_password" class="form-control" required>
-              </div>
-              <div class="mb-3">
-                <label for="confirm_new_password" class="form-label">Confirm New Password</label>
-                <input type="password" name="confirm_new_password" class="form-control" required>
-              </div>
-            </div>
-            <div class="modal-footer border-0">
-              <button type="submit" class="btn btn-success">Save</button>
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel & Return to Register</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
   </div>
 </div>
 
+<!-- Modal -->
+<div class="modal fade modern-modal" id="instructorModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title"><i class="fas fa-users"></i> Registered Instructors</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="closeModalBtn"></button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-dark table-hover table-bordered rounded" id="instructorTable">
+          <thead>
+            <tr>
+              <th><i class="fas fa-user"></i> Name</th>
+              <th><i class="fas fa-user-tag"></i> Username</th>
+              <th><i class="fas fa-key"></i> Password</th>
+              <th><i class="fas fa-cogs"></i> Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- JS will populate -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Password Modal -->
+<div class="modal fade modern-modal" id="editPasswordModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title"><i class="fas fa-key"></i> Edit Password</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="closeEditModalBtn"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editPasswordForm">
+          <input type="hidden" id="edit-username" name="username" />
+          <div class="form-group">
+            <label for="edit-password"><i class="fas fa-lock"></i> New Password</label>
+            <input required type="password" id="edit-password" name="password" class="form-control" placeholder="New Password" />
+          </div>
+          <div class="form-group">
+            <label for="edit-confirm-password"><i class="fas fa-lock"></i> Confirm New Password</label>
+            <input required type="password" id="edit-confirm-password" name="confirm_password" class="form-control" placeholder="Confirm New Password" />
+            <span class="edit-password-error" style="color:#ff7675;font-size:0.95em;"></span>
+          </div>
+          <button type="submit" class="btn btn-success w-100 mt-2"><i class="fas fa-save"></i> Save</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
 <script src="{{ url_for('static', filename='js/register.js') }}"></script>
-<style>
-  /* Fix modal interaction issues */
-  .modal {
-    pointer-events: auto !important;
-  }
-  
-  .modal-backdrop {
-    z-index: 1040 !important;
-  }
-  
-  .modal-content {
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-  }
-  
-  /* Ensure modal buttons are clickable */
-  .modal button, .modal a {
-    position: relative;
-    z-index: 1;
-  }
-</style>
 {% endblock %}

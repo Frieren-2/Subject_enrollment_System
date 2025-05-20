@@ -1,45 +1,165 @@
-    document.addEventListener("DOMContentLoaded", function () {
-    // Password visibility toggle
-    const toggleBtns = document.querySelectorAll(".password-toggle");
-    toggleBtns.forEach((btn) => {
-        btn.addEventListener("click", function () {
-        const input = this.parentElement.querySelector("input");
-        const icon = this.querySelector("i");
-        if (input.type === "password") {
-            input.type = "text";
-            icon.classList.replace("fa-eye", "fa-eye-slash");
-        } else {
-            input.type = "password";
-            icon.classList.replace("fa-eye-slash", "fa-eye");
-        }
+document.addEventListener("DOMContentLoaded", function () {
+  // Password match validation
+  const password = document.getElementById("password");
+  const confirmPassword = document.getElementById("confirm_password");
+  const errorSpan = document.querySelector(".password-error");
+
+  function validatePassword() {
+    if (password.value !== confirmPassword.value) {
+      errorSpan.textContent = "Passwords do not match";
+      confirmPassword.setCustomValidity("Passwords do not match");
+    } else {
+      errorSpan.textContent = "";
+      confirmPassword.setCustomValidity("");
+    }
+  }
+  password.addEventListener("input", validatePassword);
+  confirmPassword.addEventListener("input", validatePassword);
+
+  // Register form submit
+  document
+    .getElementById("registerForm")
+    .addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (password.value !== confirmPassword.value) return;
+
+      const name = document.getElementById("name").value.trim();
+      const username = document.getElementById("username").value.trim();
+      const pwd = password.value;
+
+      // Get instructors from localStorage
+      let instructors = JSON.parse(localStorage.getItem("instructors") || "[]");
+      // Check for duplicate username
+      if (instructors.some((i) => i.username === username)) {
+        alert("Username already exists!");
+        return;
+      }
+      instructors.push({ name, username, password: pwd });
+      localStorage.setItem("instructors", JSON.stringify(instructors));
+      alert("Instructor registered!");
+      this.reset();
+    });
+
+  // Show modal with instructor list and actions (fetch from backend)
+  document
+    .getElementById("viewInstructorsBtn")
+    .addEventListener("click", function () {
+      fetch("/api/instructors")
+        .then((res) => res.json())
+        .then((data) => {
+          const instructors = data.instructors || [];
+          const tbody = document.querySelector("#instructorTable tbody");
+          tbody.innerHTML = "";
+          instructors.forEach((i) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${i.name}</td>
+              <td>${i.username}</td>
+              <td>
+                <span class="password-cell">${i.password}</span>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-warning edit-btn" data-username="${i.username}">Edit</button>
+                <button class="btn btn-sm btn-danger delete-btn" data-username="${i.username}">Delete</button>
+              </td>
+            `;
+            tbody.appendChild(row);
+          });
+
+          // Attach event listeners for edit/delete
+          tbody.querySelectorAll(".edit-btn").forEach((btn) => {
+            btn.addEventListener("click", function () {
+              const username = this.getAttribute("data-username");
+              document.getElementById("edit-username").value = username;
+              document.getElementById("edit-password").value = "";
+              document.getElementById("edit-confirm-password").value = "";
+              document.querySelector(".edit-password-error").textContent = "";
+              var modal = new bootstrap.Modal(
+                document.getElementById("editPasswordModal")
+              );
+              modal.show();
+            });
+          });
+          tbody.querySelectorAll(".delete-btn").forEach((btn) => {
+            btn.addEventListener("click", function () {
+              const username = this.getAttribute("data-username");
+              if (confirm("Are you sure you want to delete this instructor?")) {
+                fetch("/api/instructors/delete", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ username }),
+                })
+                  .then((res) => res.json())
+                  .then((result) => {
+                    if (result.success) {
+                      // Refresh the table
+                      document.getElementById("viewInstructorsBtn").click();
+                    } else {
+                      alert(result.message || "Delete failed.");
+                    }
+                  });
+              }
+            });
+          });
+        });
+
+      // Show modal (Bootstrap 5)
+      var modal = new bootstrap.Modal(
+        document.getElementById("instructorModal")
+      );
+      modal.show();
+    });
+
+  // Close modal
+  document
+    .getElementById("closeModalBtn")
+    .addEventListener("click", function () {
+      var modalEl = document.getElementById("instructorModal");
+      var modal = bootstrap.Modal.getInstance(modalEl);
+      modal.hide();
+    });
+
+  // Edit password modal logic
+  document
+    .getElementById("editPasswordForm")
+    .addEventListener("submit", function (e) {
+      e.preventDefault();
+      const username = document.getElementById("edit-username").value;
+      const newPassword = document.getElementById("edit-password").value;
+      const confirmPassword = document.getElementById(
+        "edit-confirm-password"
+      ).value;
+      const errorSpan = document.querySelector(".edit-password-error");
+      if (newPassword !== confirmPassword) {
+        errorSpan.textContent = "Passwords do not match";
+        return;
+      }
+      fetch("/api/instructors/update_password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password: newPassword }),
+      })
+        .then((res) => res.json())
+        .then((result) => {
+          if (result.success) {
+            errorSpan.textContent = "";
+            // Close modal
+            var modalEl = document.getElementById("editPasswordModal");
+            var modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+            alert("Password updated!");
+          } else {
+            errorSpan.textContent = result.message || "Update failed.";
+          }
         });
     });
 
-    // Password validation
-    const password = document.getElementById("password");
-    const confirmPassword = document.getElementById("confirmPassword");
-    const errorSpans = document.querySelectorAll(".password-error");
-
-    function validatePassword() {
-        if (password.value !== confirmPassword.value) {
-        errorSpans[1].textContent = "Passwords do not match";
-        confirmPassword.setCustomValidity("Passwords do not match");
-        } else {
-        errorSpans[1].textContent = "";
-        confirmPassword.setCustomValidity("");
-        }
-    }
-
-    password.addEventListener("change", validatePassword);
-    confirmPassword.addEventListener("keyup", validatePassword);
-
-    // Form submission
-    const form = document.querySelector("form");
-    form.addEventListener("submit", function (e) {
-        e.preventDefault();
-        if (password.value === confirmPassword.value) {
-        this.classList.add("loading");
-        // Add your form submission logic here
-        }
+  // Close edit modal
+  document
+    .getElementById("closeEditModalBtn")
+    .addEventListener("click", function () {
+      var modalEl = document.getElementById("editPasswordModal");
+      var modal = bootstrap.Modal.getInstance(modalEl);
+      modal.hide();
     });
-    });
+});
