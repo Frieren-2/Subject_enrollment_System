@@ -293,74 +293,6 @@ def get_student():
             cursor.close()
 
 
-@app.route('/instructor/check_time_conflict', methods=['POST'])
-def check_time_conflict():
-    """
-    Check if there's a time conflict between a new subject and existing enrolled subjects.
-    """
-    if 'usertype' not in session or session['usertype'] != 'instructor':
-        return jsonify({'error': 'Unauthorized access'}), 403
-
-    # Get form data
-    student_id = request.form.get('student_id')
-    subj_avail_id = request.form.get('subj_avail_id')
-    day_of_week = request.form.get('day_of_week')
-    start_time = request.form.get('start_time')
-    end_time = request.form.get('end_time')
-
-    # Validate input
-    if not all([student_id, subj_avail_id, day_of_week, start_time, end_time]):
-        return jsonify({'error': 'Missing required form data'}), 400
-
-    # Normalize day list
-    days = [day.strip().lower() for day in day_of_week.split(',')]
-
-    # Convert start and end time to time objects
-    try:
-        start_time_obj = datetime.datetime.strptime(start_time, '%H:%M:%S').time()
-        end_time_obj = datetime.datetime.strptime(end_time, '%H:%M:%S').time()
-    except ValueError:
-        try:
-            start_time_obj = datetime.datetime.strptime(start_time, '%H:%M').time()
-            end_time_obj = datetime.datetime.strptime(end_time, '%H:%M').time()
-        except ValueError:
-            return jsonify({'error': 'Invalid time format'}), 400
-
-    # Query existing enrolled subjects for the student
-    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cur.execute("""
-        SELECT sa.subj_avail_id, sa.day_of_week, sa.start_time, sa.end_time, s.subject
-        FROM student_subject ss
-        JOIN subj_avail sa ON ss.subj_avail_id = sa.sub_avail_id
-        JOIN subject s ON sa.subject_id = s.subject_id
-        WHERE ss.student_id = %s
-    """, (student_id,))
-    existing_subjects = cur.fetchall()
-    cur.close()
-
-    # Check for conflicts
-    for subject in existing_subjects:
-        existing_days = [day.strip().lower() for day in subject['day_of_week'].split(',')]
-
-        # Parse stored times
-        try:
-            existing_start = datetime.datetime.strptime(subject['start_time'], '%H:%M:%S').time()
-            existing_end = datetime.datetime.strptime(subject['end_time'], '%H:%M:%S').time()
-        except ValueError:
-            existing_start = datetime.datetime.strptime(subject['start_time'], '%H:%M').time()
-            existing_end = datetime.datetime.strptime(subject['end_time'], '%H:%M').time()
-
-        # Compare overlapping days and times
-        if any(day in existing_days for day in days):
-            if start_time_obj < existing_end and end_time_obj > existing_start:
-                return jsonify({
-                    'conflict': True,
-                    'message': f"Time conflict with subject '{subject['subject']}' scheduled on {subject['day_of_week']} from {existing_start} to {existing_end}."
-                })
-
-    return jsonify({'conflict': False, 'message': 'No time conflict detected.'})
-
-
 
 @app.route('/instructor/enlist_subject', methods=['POST'])
 def enlist_subject():
@@ -371,12 +303,8 @@ def enlist_subject():
         student_id = request.form.get('student_id')
         subj_avail_id = request.form.get('subj_avail_id')
         
-        print(f"Debug - Received data: student_id={student_id}, subj_avail_id={subj_avail_id}")  # Debug print
-        
-        if not student_id:
-            return jsonify({'success': False, 'message': 'Student ID is required'}), 400
-        if not subj_avail_id:
-            return jsonify({'success': False, 'message': 'Subject ID is required'}), 400
+        if not all([student_id, subj_avail_id]):
+            return jsonify({'success': False, 'message': 'Missing required fields'}), 400
 
         cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
 
@@ -388,20 +316,15 @@ def enlist_subject():
             
         actual_student_id = student['student_id']
 
-        # Verify subject exists
-        cur.execute("SELECT sub_avail_id FROM subj_avail WHERE sub_avail_id = %s", (subj_avail_id,))
-        if not cur.fetchone():
-            return jsonify({'success': False, 'message': 'Subject not found'}), 404
+        # Check for schedule conflicts
+        has_conflict, conflict_message = check_time_conflict(cur, actual_student_id, subj_avail_id)
+        if has_conflict:
+            return jsonify({
+                'success': False,
+                'message': conflict_message
+            }), 409  # HTTP 409 Conflict
 
-        # Check for existing enrollment
-        cur.execute(
-            "SELECT 1 FROM student_subject WHERE student_id = %s AND subj_avail_id = %s",
-            (actual_student_id, subj_avail_id)
-        )
-        if cur.fetchone():
-            return jsonify({'success': False, 'message': 'Student already enrolled in this subject'}), 400
-
-        # Insert enrollment
+        # Continue with enrollment if no conflicts
         cur.execute(
             "INSERT INTO student_subject (student_id, subj_avail_id) VALUES (%s, %s)",
             (actual_student_id, subj_avail_id)
@@ -414,7 +337,7 @@ def enlist_subject():
         })
 
     except Exception as e:
-        print(f"Error in enlist_subject: {str(e)}")  # Debug print
+        print(f"Error in enlist_subject: {str(e)}")
         return jsonify({'success': False, 'message': str(e)}), 500
     finally:
         if 'cur' in locals():
@@ -443,44 +366,6 @@ def get_subject_students(subj_avail_id):
     cur.close()
     
     return jsonify({'students': students})
-
-
-@app.route('/instructor/remove_enrollment', methods=['POST'])
-def remove_enrollment():
-    """
-    Remove a student from a subject
-    """
-    if 'usertype' not in session or session['usertype'] != 'instructor':
-        return jsonify({'error': 'Unauthorized access'}), 403
-
-    student_id = request.form.get('student_id')
-    subj_avail_id = request.form.get('subj_avail_id')
-
-    if not student_id or not subj_avail_id:
-        return jsonify({
-            'success': False,
-            'message': 'Missing student ID or subject availability ID.'
-        }), 400
-
-    try:
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute(
-            "DELETE FROM student_subject WHERE student_id = %s AND subj_avail_id = %s",
-            (student_id, subj_avail_id)
-        )
-        mysql.connection.commit()
-        cursor.close()
-
-        return jsonify({
-            'success': True,
-            'message': 'Student successfully unenrolled from subject.'
-        })
-    except Exception as e:
-        print(f"Error in remove_enrollment: {e}")
-        return jsonify({
-            'success': False,
-            'message': 'An error occurred while trying to remove enrollment.'
-        }), 500
 
 
 
@@ -673,6 +558,107 @@ def search_students():
     except Exception as e:
         print(f"Error in search_students: {str(e)}")  # Debug print
         return jsonify({'error': 'Error searching students'}), 500
+
+def check_time_conflict(cur, student_id, new_subject_id):
+    """Check if new subject conflicts with student's existing subjects"""
+    # Get new subject schedule
+    cur.execute("""
+        SELECT day_of_week, 
+               DATE_FORMAT(start_time, '%%H:%%i') as start_time,
+               DATE_FORMAT(end_time, '%%H:%%i') as end_time,
+               Sub_code,
+               subject.subject as subject_name
+        FROM subj_avail 
+        JOIN subject ON subj_avail.subject_id = subject.subject_id
+        WHERE sub_avail_id = %s
+    """, (new_subject_id,))
+    new_subject = cur.fetchone()
+    
+    if not new_subject:
+        return True, "Subject not found"
+    
+    # Get student's current subjects
+    cur.execute("""
+        SELECT sa.day_of_week, 
+               DATE_FORMAT(sa.start_time, '%%H:%%i') as start_time,
+               DATE_FORMAT(sa.end_time, '%%H:%%i') as end_time,
+               sa.Sub_code,
+               s.subject as subject_name
+        FROM student_subject ss
+        JOIN subj_avail sa ON ss.subj_avail_id = sa.sub_avail_id
+        JOIN subject s ON sa.subject_id = s.subject_id
+        WHERE ss.student_id = %s
+    """, (student_id,))
+    current_subjects = cur.fetchall()
+    
+    try:
+        # Parse new subject schedule
+        new_days = set(d.strip().lower() for d in new_subject['day_of_week'].split(','))
+        # Use '%H:%M' for Python, but in MySQL use '%H:%i' only in SELECT, not in Python string formatting!
+        # The error is because Python tries to format the SQL string, so escape the percent sign:
+        # Change '%H:%i' to '%%H:%%i' in all DATE_FORMAT/TIME_FORMAT usages in your SQL queries below
+
+        # Example:
+        # DATE_FORMAT(start_time, '%%H:%%i') as start_time
+
+        # So update the SQL above and below:
+        # ...existing code...
+        cur.execute("""
+            SELECT day_of_week, 
+                   DATE_FORMAT(start_time, '%%H:%%i') as start_time,
+                   DATE_FORMAT(end_time, '%%H:%%i') as end_time,
+                   Sub_code,
+                   subject.subject as subject_name
+            FROM subj_avail 
+            JOIN subject ON subj_avail.subject_id = subject.subject_id
+            WHERE sub_avail_id = %s
+        """, (new_subject_id,))
+        new_subject = cur.fetchone()
+        # ...existing code...
+        cur.execute("""
+            SELECT sa.day_of_week, 
+                   DATE_FORMAT(sa.start_time, '%%H:%%i') as start_time,
+                   DATE_FORMAT(sa.end_time, '%%H:%%i') as end_time,
+                   sa.Sub_code,
+                   s.subject as subject_name
+            FROM student_subject ss
+            JOIN subj_avail sa ON ss.subj_avail_id = sa.sub_avail_id
+            JOIN subject s ON sa.subject_id = s.subject_id
+            WHERE ss.student_id = %s
+        """, (student_id,))
+        current_subjects = cur.fetchall()
+        
+        # Parse new subject times
+        new_start = datetime.datetime.strptime(new_subject['start_time'], '%H:%M').time()
+        new_end = datetime.datetime.strptime(new_subject['end_time'], '%H:%M').time()
+        
+        # Check against each existing subject
+        for subj in current_subjects:
+            subj_days = set(d.strip().lower() for d in subj['day_of_week'].split(','))
+            
+            # If days overlap, check times
+            if new_days.intersection(subj_days):
+                try:
+                    subj_start = datetime.datetime.strptime(subj['start_time'], '%H:%M').time()
+                    subj_end = datetime.datetime.strptime(subj['end_time'], '%H:%M').time()
+                    
+                    if (new_start < subj_end and subj_start < new_end):
+                        conflict_msg = (
+                            f"Schedule conflict: {new_subject['Sub_code']} ({new_subject['subject_name']}) "
+                            f"{new_subject['day_of_week']} {new_subject['start_time']}-{new_subject['end_time']} "
+                            f"conflicts with {subj['Sub_code']} ({subj['subject_name']}) "
+                            f"{subj['day_of_week']} {subj['start_time']}-{subj['end_time']}"
+                        )
+                        return True, conflict_msg
+                except ValueError as e:
+                    print(f"Error parsing time for subject {subj['Sub_code']}: {e}")
+                    continue
+                    
+        return False, None
+        
+    except ValueError as e:
+        print(f"Error parsing time for new subject: {e}")
+        return True, f"Error processing time format: {str(e)}"
 
 if __name__ == "__main__":
     app.run(debug=True, port=81)

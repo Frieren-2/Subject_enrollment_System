@@ -17,7 +17,7 @@
                 <td>{{ student.name }}</td>
                 <td>{{ student.USN }}</td>
                 <td>
-                    <button class="btn btn-sm btn-info" onclick="showModal('{{ student.name }}', '{{ student.USN }}', '{{ student.status }}', '{{ student.contact }}', '{{ student.units }}')" style="background-color: #f39c12; border-color: #f39c12;">
+                    <button class="btn btn-sm btn-info" onclick="showModal('{{ student.id }}', '{{ student.name }}', '{{ student.USN }}', '{{ student.status }}', '{{ student.contact }}', '{{ student.units }}')" style="background-color: #f39c12; border-color: #f39c12;">
                         Info
                     </button>
                 </td>
@@ -36,11 +36,39 @@
                 <button type="button" class="btn-close" onclick="closeModal()" style="color: #f8f9fa;"></button>
             </div>
             <div class="modal-body">
-                <p><strong>Name:</strong> <span id="modalName"></span></p>
-                <p><strong>USN/ID:</strong> <span id="modalUsn"></span></p>
-                <p><strong>Status:</strong> <span id="modalStatus"></span></p>
-                <p><strong>Contact Number:</strong> <span id="modalContact"></span></p>
-                <p><strong>Current Units:</strong> <span id="modalUnits"></span></p>
+                <div class="row">
+                    <div class="col-md-4">
+                        <p><strong>Name:</strong> <span id="modalName"></span></p>
+                        <p><strong>USN/ID:</strong> <span id="modalUsn"></span></p>
+                        <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+                        <p><strong>Contact Number:</strong> <span id="modalContact"></span></p>
+                        <p><strong>Current Units:</strong> <span id="modalUnits"></span></p>
+                        
+                        <!-- Add conflicts section -->
+                        <div id="scheduleConflicts" class="alert alert-warning mt-3" style="display: none;">
+                            <h6>Schedule Conflicts:</h6>
+                            <div id="conflictsList"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <h6>Enrolled Subjects</h6>
+                        <div id="enrolledSubjects" class="table-responsive">
+                            <table class="table table-dark table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Subject</th>
+                                        <th>Schedule</th>
+                                        <th>Room</th>
+                                        <th>Units</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="subjectsTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -60,12 +88,55 @@ document.getElementById('searchInput').addEventListener('keyup', function () {
 });
 
 // Show modal and populate with data
-function showModal(name, usn, status, contact, units) {
+async function showModal(studentId, name, usn, status, contact, units) {
     document.getElementById('modalName').textContent = name;
     document.getElementById('modalUsn').textContent = usn;
     document.getElementById('modalStatus').textContent = status;
     document.getElementById('modalContact').textContent = contact;
     document.getElementById('modalUnits').textContent = units;
+
+    try {
+        const response = await fetch(`/get_enrolled_subjects/${studentId}`);
+        const data = await response.json();
+        
+        // Populate subjects table
+        const tableBody = document.getElementById('subjectsTableBody');
+        tableBody.innerHTML = '';
+        
+        data.subjects.forEach(subject => {
+            const row = `
+                <tr>
+                    <td>${subject.Sub_code}</td>
+                    <td>${subject.subject_name}</td>
+                    <td>${subject.day_of_week} ${subject.start_time}-${subject.end_time}</td>
+                    <td>${subject.room}</td>
+                    <td>${subject.units}</td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
+
+        // Show conflicts if any
+        const conflictsDiv = document.getElementById('scheduleConflicts');
+        const conflictsList = document.getElementById('conflictsList');
+        
+        if (data.conflicts && data.conflicts.length > 0) {
+            conflictsList.innerHTML = data.conflicts.map(conflict => `
+                <div class="conflict-item mb-2">
+                    <small>
+                        ${conflict.subject1.code} (${conflict.subject1.schedule}) 
+                        conflicts with 
+                        ${conflict.subject2.code} (${conflict.subject2.schedule})
+                    </small>
+                </div>
+            `).join('');
+            conflictsDiv.style.display = 'block';
+        } else {
+            conflictsDiv.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error fetching subjects:', error);
+    }
 
     document.getElementById('studentModal').style.display = 'block';
 }
