@@ -1,52 +1,75 @@
 :root {
-    --primary-color: #4f46e5;
-    --primary-hover: #4338ca;
+    --primary-color: #f58529;
+    --primary-hover: #dd2a7b;
     --error-color: #ef4444;
     --success-color: #22c55e;
-    --text-color: #000000;
-    --label-color: #6b7280;
-    --border-color: #e5e7eb;
-    --input-bg: #269bd1;
+    --text-color: #262626;
+    --label-color: #8134af;
+    --border-color: #e6e6e6;
+    --input-bg: #fafafa;
+    --card-radius: 24px;
+    --shadow: 0 4px 32px 0 rgba(221,42,123,0.10);
 }
 
 body {
-    font-family: 'Inter', sans-serif;
-    background: linear-gradient(135deg, #007488 0%, #eef1ff 100%);
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #f58529 0%, #dd2a7b 50%, #8134af 100%);
     margin: 0;
     min-height: 100vh;
-    display: block;  /* Change from flex to block */
-    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
 }
 
 .page-container {
     display: flex;
     width: 100%;
-    max-width: 1800px;
-    margin: 0 auto;
+    max-width: 900px;
+    margin: 40px auto;
     gap: 2rem;
     padding: 2rem;
+    background: rgba(255,255,255,0.10);
+    border-radius: var(--card-radius);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(6px);
 }
 
 .left-section {
     flex: 1;
-    max-width: 400px;
+    max-width: 320px;
+    background: rgba(255,255,255,0.18);
+    border-radius: var(--card-radius);
+    box-shadow: 0 2px 16px 0 rgba(221,42,123,0.08);
+    backdrop-filter: blur(8px);
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .right-section {
     flex: 2;
-    background: rgb(24, 127, 134);
-    border-radius: 16px;
+    max-width: 520px;
+    background: #fff;
+    border-radius: var(--card-radius);
     padding: 32px;
-    box-shadow: 0 4px 6px -1px rgba(28, 174, 194, 0.1);
+    box-shadow: var(--shadow);
+    border: 1.5px solid #f5852940;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .register-card {
-    background: rgb(24, 127, 134);
-    border-radius: 16px;
+    max-width: 480px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: var(--card-radius);
     padding: 32px;
-    box-shadow: 0 4px 6px -1px rgba(28, 174, 194, 0.1), 0 2px 4px -2px rgba(30, 197, 209, 0.1);
+    box-shadow: var(--shadow);
     width: 100%;
-    margin-top: 0;
+    border: 1.5px solid #dd2a7b33;
 }
 
 .card-header {
@@ -55,15 +78,17 @@ body {
 }
 
 .card-header h2 {
-    color: var(--text-color);
-    font-size: 24px;
-    font-weight: 600;
+    color: var(--primary-hover);
+    font-size: 28px;
+    font-weight: 700;
     margin: 0 0 8px 0;
+    letter-spacing: 1px;
 }
 
 .card-header p {
     color: var(--label-color);
     margin: 0;
+    font-size: 1rem;
 }
 
 .form-group {
@@ -74,36 +99,45 @@ body {
     position: relative;
 }
 
-
 .input-field input {
     width: 100%;
-    padding: 12px 12px 12px 40px;
+    padding: 14px 14px 14px 42px;
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 999px;
     background: var(--input-bg);
-    font-size: 14px;
-    transition: all 0.3s ease;
+    font-size: 15px;
+    transition: border 0.2s;
     box-sizing: border-box;
+    color: var(--text-color);
+    outline: none;
+}
+
+.input-field input:focus {
+    border-color: var(--primary-hover);
+    background: #fff;
 }
 
 .submit-btn {
     width: 100%;
-    padding: 12px;
-    color: rgb(255, 255, 255);
+    padding: 14px;
+    background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-hover) 80%);
+    color: #fff;
     border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 500;
+    border-radius: 999px;
+    font-size: 17px;
+    font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: all 0.3s ease;
+    transition: background 0.2s, transform 0.1s;
+    box-shadow: 0 2px 8px #dd2a7b22;
 }
 
 .submit-btn:hover {
-    background: var(--primary-hover);
+    background: linear-gradient(90deg, var(--primary-hover) 0%, var(--primary-color) 80%);
+    transform: translateY(-2px) scale(1.03);
 }
 
 .submit-btn i {
@@ -115,21 +149,25 @@ body {
 }
 
 .alert {
+    border-radius: 16px;
+    background: #fdf6fa;
+    color: var(--primary-hover);
+    font-weight: 500;
+    box-shadow: 0 2px 8px #f5852922;
+    padding: 12px;
+    margin-bottom: 24px;
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 24px;
 }
 
 .alert-success {
-    background: rgba(34, 197, 94, 0.1);
+    background: #e6fffa;
     color: var(--success-color);
 }
 
 .alert-error {
-    background: rgba(239, 68, 68, 0.1);
+    background: #ffe4ec;
     color: var(--error-color);
 }
 
@@ -137,38 +175,38 @@ body {
     font-size: 20px;
 }
 
-/* Add responsive design */
 @media (max-width: 1024px) {
     .page-container {
         flex-direction: column;
+        padding: 1rem;
+        gap: 1rem;
     }
-    
-    .left-section {
-        max-width: 100%;
-    }
-    
+    .left-section,
     .right-section {
-        margin-top: 2rem;
+        max-width: 100%;
+        padding: 1.5rem;
+    }
+    .register-card {
+        padding: 1.5rem;
     }
 }
 
-/* Add after existing styles */
-
 .modal-content {
-    background: rgb(24, 127, 134);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: var(--card-radius);
+    box-shadow: 0 4px 24px #dd2a7b11;
 }
 
 .modal-header {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid #f3f4f6;
     padding: 1.5rem;
 }
 
 .modal-title {
-    color: white;
+    color: var(--primary-hover);
     font-size: 1.25rem;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .btn-close {
@@ -190,7 +228,7 @@ body {
     left: 50%;
     width: 20px;
     height: 2px;
-    background-color: white;
+    background-color: #ccc;
     transform-origin: center;
 }
 
@@ -207,31 +245,35 @@ body {
     transform: rotate(90deg);
 }
 
-/* Remove default Bootstrap close button styles */
 .btn-close:focus {
     box-shadow: none;
     opacity: 1;
 }
 
 .table {
-    color: white;
+    color: var(--text-color);
     margin: 0;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px #dd2a7b11;
+    overflow: hidden;
 }
 
 .table th {
-    color: #a3b3bc;
-    font-weight: 500;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    color: var(--label-color);
+    font-weight: 600;
+    border-bottom: 2px solid #e6e6e6;
     padding: 1rem;
+    background: #fafafa;
 }
 
 .table td {
     padding: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid #f1f1f1;
 }
 
 .table tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: #fdf6fa;
 }
 
 .password-dots {
@@ -241,26 +283,25 @@ body {
 }
 
 .view-accounts-btn {
-    background: linear-gradient(135deg, var(--primary-color) 0%, #269bd1 100%);
+    background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-hover) 80%);
     color: white;
     border: none;
-    border-radius: 12px;
+    border-radius: 999px;
     padding: 12px 24px;
     font-size: 16px;
-    font-weight: 500;
+    font-weight: 600;
     display: flex;
     align-items: center;
     gap: 10px;
     margin: 20px 0;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background 0.2s, transform 0.1s;
+    box-shadow: 0 2px 8px #dd2a7b22;
 }
 
 .view-accounts-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-    background: linear-gradient(135deg, var(--primary-hover) 0%, #1a7ba8 100%);
+    background: linear-gradient(90deg, var(--primary-hover) 0%, var(--primary-color) 80%);
+    transform: translateY(-2px) scale(1.03);
 }
 
 .view-accounts-btn i {

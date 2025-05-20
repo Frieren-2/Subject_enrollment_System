@@ -1,9 +1,16 @@
+body {
+    background: linear-gradient(135deg, #f58529 0%, #dd2a7b 50%, #8134af 100%);
+    min-height: 100vh;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    color: #262626;
+}
+
 .card {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    padding: 25px;
-    margin: 15px auto;
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 4px 32px 0 rgba(221,42,123,0.10);
+    padding: 32px;
+    margin: 24px auto;
     width: 84%;
     height: calc(100vh - 120px);
     overflow-y: auto;
@@ -15,44 +22,65 @@
 .search-box {
     position: sticky;
     top: 0;
-    background: white;
+    background: #fff;
     z-index: 1;
-    padding: 8px;
-    margin-bottom: 10px;
-    font-size: 14px;
+    padding: 12px;
+    margin-bottom: 16px;
+    font-size: 15px;
+    border-radius: 999px;
+    box-shadow: 0 2px 8px #dd2a7b11;
+    border: 1px solid #e6e6e6;
 }
 
 .student-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 14px;
+    font-size: 15px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px #dd2a7b11;
 }
 
 .student-table thead {
     position: sticky;
     top: 45px;
-    background: white;
+    background: #fff;
     z-index: 1;
 }
 
 .student-table th, .student-table td {
-    padding: 8px;
-    border: 1px solid #ddd;
+    padding: 12px;
+    border: none;
     text-align: left;
+    color: #262626;
 }
 
 .student-table th {
-    font-size: 14px;
-    background-color: #f8f9fa;
+    font-size: 15px;
+    background-color: #fafafa;
+    color: #8134af;
+    font-weight: 600;
+}
+
+.student-table tbody tr:hover {
+    background: #fdf6fa;
 }
 
 .info-button {
-    background: #007bff;
+    background: linear-gradient(90deg, #f58529 0%, #dd2a7b 80%);
     color: white;
     border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
+    padding: 7px 16px;
+    border-radius: 999px;
     cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s, transform 0.1s;
+    box-shadow: 0 2px 8px #dd2a7b22;
+}
+
+.info-button:hover {
+    background: linear-gradient(90deg, #dd2a7b 0%, #f58529 80%);
+    transform: translateY(-2px) scale(1.03);
 }
 
 .modal {
@@ -62,30 +90,33 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.5);
+    background: rgba(221,42,123,0.15);
 }
 
 .modal-content {
-    background: white;
+    background: #fff;
     margin: 8% auto;
-    padding: 20px;
+    padding: 32px;
     width: 70%;
     max-width: 600px;
-    border-radius: 8px;
+    border-radius: 24px;
+    box-shadow: 0 4px 24px #dd2a7b11;
 }
 
 .close {
     float: right;
     cursor: pointer;
-    font-size: 24px;
+    font-size: 28px;
+    color: #dd2a7b;
+    font-weight: bold;
 }
 
 .enrolled {
-    color: green;
+    color: #10b981;
     font-weight: bold;
 }
 
 .not-enrolled {
-    color: red;
+    color: #ef4444;
     font-weight: bold;
 }

@@ -1,31 +1,47 @@
-.glass-card {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
+body {
+        background: linear-gradient(135deg, #f58529 0%, #dd2a7b 50%, #8134af 100%);
+        min-height: 100vh;
+        font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+        color: #262626;
+    }
+
+    .glass-card, .card {
+        background: #fff;
+        border-radius: 24px;
+        box-shadow: 0 4px 32px 0 rgba(221,42,123,0.10);
+        border: none;
+        margin-top: 20px;
+        padding: 2rem;
     }
 
     .bg-gradient-primary {
-        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af);
+        color: #fff;
+        border-radius: 24px;
     }
 
     .btn-glass {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(5px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: white;
-        transition: all 0.3s ease;
+        background: linear-gradient(90deg, #f58529 0%, #dd2a7b 80%);
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        font-weight: 600;
+        box-shadow: 0 2px 8px #dd2a7b22;
+        transition: background 0.2s, transform 0.1s;
     }
 
     .btn-glass:hover {
-        background: rgba(255, 255, 255, 0.2);
-        transform: translateY(-2px);
+        background: linear-gradient(90deg, #dd2a7b 0%, #f58529 80%);
+        transform: translateY(-2px) scale(1.03);
     }
 
     .table-modern {
         border-spacing: 0 8px;
         border-collapse: separate;
-        margin-top: 10px; /* Adjust the table closer to the top */
+        margin-top: 10px;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px #dd2a7b11;
     }
 
     .table-row-hover {
@@ -34,32 +50,39 @@
 
     .table-row-hover:hover {
         transform: scale(1.01);
-        background: rgba(255, 255, 255, 0.05);
-        box-shadow: 0 0 20px rgba(108, 99, 255, 0.2);
+        background: #fdf6fa;
+        box-shadow: 0 0 20px #f5852922;
     }
 
     .status-badge {
-        padding: 5px 10px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 500;
+        padding: 5px 14px;
+        border-radius: 999px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        background: #fafafa;
+        color: #8134af;
     }
 
     .status-approved {
-        background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
-        color: white;
+        background: linear-gradient(90deg, #f58529 0%, #dd2a7b 80%);
+        color: #fff;
     }
 
     .btn-icon {
-        width: 32px;
-        height: 32px;
+        width: 36px;
+        height: 36px;
         padding: 0;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border-radius: 8px;
+        border-radius: 50%;
+        background: #fafafa;
+        color: #dd2a7b;
+        border: 1px solid #e6e6e6;
+        transition: background 0.2s;
     }
 
-    .card {
-        margin-top: 20px; /* Add spacing between sections */
+    .btn-icon:hover {
+        background: #fdf6fa;
+        color: #f58529;
     }
