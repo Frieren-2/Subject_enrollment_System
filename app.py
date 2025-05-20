@@ -594,15 +594,7 @@ def check_time_conflict(cur, student_id, new_subject_id):
     try:
         # Parse new subject schedule
         new_days = set(d.strip().lower() for d in new_subject['day_of_week'].split(','))
-        # Use '%H:%M' for Python, but in MySQL use '%H:%i' only in SELECT, not in Python string formatting!
-        # The error is because Python tries to format the SQL string, so escape the percent sign:
-        # Change '%H:%i' to '%%H:%%i' in all DATE_FORMAT/TIME_FORMAT usages in your SQL queries below
-
-        # Example:
-        # DATE_FORMAT(start_time, '%%H:%%i') as start_time
-
-        # So update the SQL above and below:
-        # ...existing code...
+     
         cur.execute("""
             SELECT day_of_week, 
                    DATE_FORMAT(start_time, '%%H:%%i') as start_time,
