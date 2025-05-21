@@ -155,7 +155,21 @@ document.addEventListener("DOMContentLoaded", function () {
             var modalEl = document.getElementById("editPasswordModal");
             var modal = bootstrap.Modal.getInstance(modalEl);
             modal.hide();
-            alert("Password updated!");
+            // Remove modal backdrop manually if still present
+            setTimeout(() => {
+              // Remove any lingering modal-backdrop
+              document
+                .querySelectorAll(".modal-backdrop")
+                .forEach((el) => el.remove());
+              // Remove 'modal-open' class from body if present
+              document.body.classList.remove("modal-open");
+              // Refresh instructor list if modal is open
+              const instructorModal =
+                document.getElementById("instructorModal");
+              if (instructorModal.classList.contains("show")) {
+                document.getElementById("viewInstructorsBtn").click();
+              }
+            }, 500);
           } else {
             errorSpan.textContent = result.message || "Update failed.";
           }
