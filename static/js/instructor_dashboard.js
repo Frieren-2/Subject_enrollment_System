@@ -612,6 +612,22 @@ function enlistSubject(subjAvailId, subjectName) {
     return;
   }
 
+  // Check if subject is already enrolled
+  const enrolledRows = document.querySelectorAll("#enrolledSubjects tr");
+  for (let row of enrolledRows) {
+    // Compare by subject code or subjAvailId if available
+    const codeCell = row.cells[0]?.textContent?.trim();
+    // subjAvailId may be string or number, so use loose equality
+    if (
+      codeCell == subjAvailId ||
+      row.innerHTML.includes(`"${subjAvailId}"`) ||
+      row.innerHTML.includes(`'${subjAvailId}'`)
+    ) {
+      alert("Subject already enrolled.");
+      return;
+    }
+  }
+
   console.log(
     `Enlisting - Student: ${selectedStudentId}, Subject: ${subjAvailId}`
   ); // Debug log
