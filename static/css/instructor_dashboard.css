@@ -1,13 +1,111 @@
+/* Instagram-inspired theme */
+:root {
+    --primary-color: #e1306c; /* Instagram pink */
+    --secondary-color: #fafafa;
+    --accent-color: #405de6;  /* Instagram blue */
+    --gradient-start: #f9ce34;
+    --gradient-mid: #ee2a7b;
+    --gradient-end: #6228d7;
+    --text-color: #262626;
+}
+
+body {
+    background: linear-gradient(135deg, #f9ce34 0%, #ee2a7b 50%, #6228d7 100%);
+    background-attachment: fixed;
+    font-family: 'Segoe UI', 'Roboto', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    color: var(--text-color);
+}
+
+.navbar {
+    background: linear-gradient(90deg, var(--gradient-start) 0%, var(--gradient-mid) 50%, var(--gradient-end) 100%);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    border-bottom: none;
+    border-radius: 0 0 24px 24px;
+    margin-bottom: 2rem;
+}
+
+.navbar-brand {
+    color: white !important;
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+}
+
+.navbar .me-3,
+.navbar .btn-outline-danger {
+    color: white !important;
+}
+
+.navbar .btn-outline-danger {
+    border: 1px solid #fff;
+    background: rgba(255,255,255,0.1);
+    transition: background 0.2s;
+}
+
+.navbar .btn-outline-danger:hover {
+    background: #fff;
+    color: var(--primary-color) !important;
+}
+
+.card {
+    border: none;
+    border-radius: 24px;
+    box-shadow: 0 6px 32px rgba(0,0,0,0.10); /* slightly stronger shadow */
+    transition: transform 0.2s, box-shadow 0.2s;
+    /* Add gradient background */
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 60%, var(--gradient-end) 100%);
+    /* Overlay white for readability */
+    background-blend-mode: lighten;
+}
+
+.card-header {
+    border-radius: 24px 24px 0 0;
+    background: linear-gradient(90deg, var(--gradient-mid) 0%, var(--gradient-end) 100%);
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 1px;
+    font-size: 1.15rem;
+    padding: 1.2rem 1.5rem;
+    box-shadow: 0 2px 8px rgba(238,42,123,0.07);
+}
+
+.card-body {
+    padding: 2rem 1.5rem;
+}
+
+.input-group .form-control {
+    border-radius: 16px;
+    border: 1px solid #e0e0e0;
+    background: #fafafa;
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+}
+
+.input-group .form-control:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.25rem rgba(64,93,230,0.18);
+    outline: none;
+}
+
+.input-group .btn-outline-secondary {
+    border-radius: 16px;
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    background: #fff;
+}
+
+.input-group .btn-outline-secondary:hover {
+    background: var(--accent-color);
+    color: #fff;
+}
+
 /* Subject filter styles */
 #subjectFilter {
     min-width: 200px;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
-}
-
-.input-group .btn-outline-secondary {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
 }
 
 /* Hide empty rows when filtering */
@@ -17,31 +115,10 @@ tr[style="display: none;"] {
 
 /* Highlight matching text */
 .highlight {
-    background-color: #fff3cd;
-    padding: 0.1em 0.2em;
+    background: #f9ce34;
+    color: #fff;
     border-radius: 2px;
-}
-:root {
-    --primary-color: #4a90e2;
-    --secondary-color: #f5f6fa;
-    --accent-color: #5352ed;
-}
-
-body {
-    background-color: var(--secondary-color);
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-}
-
-.navbar {
-    background: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.card {
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    transition: transform 0.2s;
+    padding: 0.1em 0.2em;
 }
 
 .search-container {
@@ -54,75 +131,129 @@ body {
     top: calc(100% + 5px);
     left: 0;
     right: 0;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
     z-index: 1000;
     max-height: 300px;
     overflow-y: auto;
-    border: 1px solid #dee2e6;
+    border: 1px solid #eee;
     padding: 8px;
 }
 
-.search-item {
-    padding: 10px 15px;
-    border-bottom: 1px solid #eee;
+.search-item, .student-search-item {
+    padding: 14px 18px;
+    border-bottom: 1px solid #f6f6f6;
     transition: background-color 0.2s;
     cursor: pointer;
     margin-bottom: 8px;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    overflow: hidden;
+    border-radius: 14px;
+    background: #fafafa;
+    font-size: 1.05rem;
 }
 
-.search-item:hover {
-    background-color: rgba(74, 144, 226, 0.1);
-}
-
-.search-item:last-child {
+.search-item:last-child, .student-search-item:last-child {
     border-bottom: none;
 }
 
-.btn-primary {
-    background-color: var(--primary-color);
-    border: none;
-}
-
-.btn-primary:hover {
-    background-color: var(--accent-color);
+.search-item:hover, .student-search-item:hover {
+    background: linear-gradient(90deg, #f9ce34 0%, #ee2a7b 100%);
+    color: #fff;
 }
 
 .table {
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
+    background: #fff;
+    border-radius: 18px;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-bottom: 0;
 }
 
 .table thead th {
-    background-color: var(--secondary-color);
-    border-bottom: none;
+    background: #fafafa;
+    border-bottom: 2px solid #f3e7fa;
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.table td, .table th {
+    border-top: 1px solid #f3e7fa;
+    font-size: 1rem;
 }
 
 .student-card {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
-
-.student-card:hover {
-    background-color: var(--secondary-color);
-    transform: translateX(4px);
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
 }
 
 .student-info {
-    padding: 1.5rem;
-    background: var(--secondary-color);
+    padding: 1.5rem 1.2rem;
+    background: linear-gradient(90deg, #f9ce34 0%, #ee2a7b 100%);
+    color: #fff;
+    border-radius: 20px 20px 0 0;
+}
+
+.student-info h6 {
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.student-info p {
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
 }
 
 .enrolled-subjects {
-    padding: 1.5rem;
+    padding: 1.5rem 1.2rem;
+    background: #fff;
+    border-radius: 0 0 20px 20px;
+}
+
+.btn-primary {
+    background: linear-gradient(90deg, var(--primary-color) 0%, var(--accent-color) 100%);
+    border: none;
+    border-radius: 14px;
+    font-weight: 600;
+    padding: 0.5rem 1.2rem;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(90deg, var(--accent-color) 0%, var(--primary-color) 100%);
+}
+
+.btn-danger {
+    background: #fff;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    border-radius: 14px;
+    font-weight: 600;
+    padding: 0.5rem 1.2rem;
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-danger:hover {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.btn-primary:focus, .btn-danger:focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 0.15rem rgba(225,48,108,0.18);
+}
+
+.badge.bg-success {
+    background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+    color: #fff;
+    font-weight: 500;
+    font-size: 0.95rem;
+    border-radius: 10px;
+    padding: 0.4em 1em;
+    letter-spacing: 0.5px;
 }
 
 @keyframes fadeIn {
@@ -134,43 +265,15 @@ body {
     animation: fadeIn 0.3s ease-out;
 }
 
-.student-search-item {
-    padding: 8px 12px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-}
-
-.student-search-item:hover {
-    background-color: var(--secondary-color);
-    transform: translateX(4px);
-}
-
-.student-clickable {
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.student-info-preview {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.expand-icon {
-    transition: transform 0.3s ease;
-}
-
-.student-info-header {
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.student-info-header:hover {
-    background-color: var(--secondary-color);
-}
-
-.expanded-content {
-    background-color: #f8f9fa;
-    border-radius: 0 0 8px 8px;
-    transition: all 0.3s ease;
+/* Responsive tweaks */
+@media (max-width: 991px) {
+    .card-body, .enrolled-subjects, .student-info {
+        padding: 1.2rem 0.7rem;
+    }
+    .navbar {
+        border-radius: 0 0 14px 14px;
+    }
+    .card {
+        border-radius: 14px;
+    }
 }

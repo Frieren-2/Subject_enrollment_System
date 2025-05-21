@@ -6,7 +6,9 @@ body {
 }
 
 .card {
-    background: #fff;
+    /* Add gradient background */
+    background: linear-gradient(135deg, #f9ce34 0%, #ee2a7b 60%, #6228d7 100%);
+    background-blend-mode: lighten;
     border-radius: 24px;
     box-shadow: 0 4px 32px 0 rgba(221,42,123,0.10);
     padding: 32px;
