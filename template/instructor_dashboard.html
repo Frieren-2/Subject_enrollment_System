@@ -12,12 +12,20 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light px-4 mb-4">
         <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="#">
-                <i class="fas fa-graduation-cap me-2"></i>Subject Enlist
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
+                <span style="font-size:2rem; background:linear-gradient(135deg,#fdf497,#fd5949,#d6249f,#285AEB);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+                    <i class="fas fa-graduation-cap me-2"></i>
+                </span>
+                <span style="font-family:'Segoe UI',sans-serif;letter-spacing:0.03em;">Subject Enlist</span>
             </a>
             <div class="d-flex align-items-center">
-                <span class="me-3">Welcome, {{ session.username }}</span>
-                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">
+                <span class="me-3" style="font-weight:600;">
+                    <span class="student-avatar" style="width:32px;height:32px;font-size:1.1rem;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#fdf497,#fd5949,#d6249f,#285AEB);margin-right:0.5rem;">
+                        {{ session.username[0]|upper }}
+                    </span>
+                    Welcome, {{ session.username }}
+                </span>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm rounded-pill">
                     <i class="fas fa-sign-out-alt me-1"></i>Logout
                 </a>
             </div>
@@ -30,125 +38,70 @@
             <div class="col-md-4">
                 <!-- Student Search Card -->
                 <div class="card mb-4">
-                    <div class="card-header">
-                        <h5>Student Search</h5>
+                    <div class="card-header bg-white border-0" style="border-radius:22px 22px 0 0;">
+                        <h5 style="font-weight:700;letter-spacing:0.01em;">Student Search</h5>
                     </div>
                     <div class="card-body">
                         <div class="search-container mb-3">
                             <div class="input-group">
                                 <input type="text" 
                                        id="studentSearch" 
-                                       class="form-control" 
+                                       class="form-control"
+                                       style="border-radius:999px;"
                                        placeholder="Search student name..."
                                        autocomplete="off"
                                        oninput="filterStudents(this.value)">
-                                    </div>
-                                    <div id="searchResults" class="search-results-list d-none">
-                                        <!-- Search results will be populated here -->
-                                    </div>
-                                </div>
-                                <div id="selectedStudent" class="d-none">
-                                    <div class="student-card">
-                                        <div class="student-info p-3">
-                                            <h6 id="studentName">Student Name</h6>
-                                            <p class="mb-0" id="studentDetails">Course & Year</p>
-                                            <p class="mb-0" id="studentProgram"><strong>Program:</strong> <span id="studentProgramValue"></span></p>
-                                        </div>
-                                        <div class="enrolled-subjects p-3 border-top">
-                                            <h6>Enrolled Subjects</h6>
-                                            <div class="table-responsive">
-                                                <table class="table table-sm">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Code</th>
-                                                            <th>Subject</th>
-                                                            <th>Schedule</th>
-                                                            <th>Units</th>
-                                                            <th>Action</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody id="enrolledSubjects">
-                                                        {% for subject in subjects %}
-                                                        <tr>
-                                                            <td>{{ subject.Sub_code }}</td>
-                                                            <td>{{ subject.subject_name }}</td>
-                                                            <td>{{ subject.day_of_week }} {{ subject.start_time }}-{{ subject.end_time }}</td>
-                                                            <td>{{ subject.room }}</td>
-                                                            <td>{{ subject.units }}</td>
-                                                            <td>
-                                                                <button class="btn btn-danger btn-sm" onclick="dropSubject({{ subject.sub_avail_id }})">
-                                                                    <i class="fas fa-times"></i> Drop
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                        {% endfor %}
-                                                    </tbody>
-                                                    <tfoot>
-                                                        <tr>
-                                                            <td colspan="3" class="text-end"><strong>Total Units:</strong></td>
-                                                            <td id="totalUnits">0</td>
-                                                            <td></td>
-                                                        </tr>
-                                                    </tfoot>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                            </div>
+                            <div id="searchResults" class="search-results-list d-none">
+                                <!-- Search results will be populated here -->
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Right Column -->
-                    <div class="col-md-8">
-                        <!-- Available Subjects Card -->
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5>Available Subjects</h5>
-                                <div class="d-flex gap-2 align-items-center">
-                                    <div class="input-group">
-                                        <input type="text" 
-                                            id="subjectSearch" 
-                                            class="form-control" 
-                                            placeholder="Search subject code or name..."
-                                            oninput="filterSubjects(this.value)">
-                                    </div>
+                        <div id="selectedStudent" class="d-none">
+                            <div class="student-card" style="box-shadow:none;">
+                                <div class="student-avatar" id="studentAvatar">
+                                    <!-- JS will fill with first letter of student name -->
+                                </div>
+                                <div class="student-info p-0">
+                                    <h6 id="studentName" style="font-weight:700;">Student Name</h6>
+                                    <p class="mb-0" id="studentDetails" style="color:#888;">Course & Year</p>
+                                    <p class="mb-0" id="studentProgram"><strong>Program:</strong> <span id="studentProgramValue"></span></p>
                                 </div>
                             </div>
-                            <div class="card-body">
+                            <div class="enrolled-subjects p-0 border-top">
+                                <h6 style="font-weight:600;">Enrolled Subjects</h6>
                                 <div class="table-responsive">
-                                    <table class="table table-hover">
+                                    <table class="table table-sm">
                                         <thead>
                                             <tr>
                                                 <th>Code</th>
                                                 <th>Subject</th>
                                                 <th>Schedule</th>
-                                                <th>Room</th>
                                                 <th>Units</th>
                                                 <th>Action</th>
-                                                <th>Status</th>  <!-- Add status column -->
                                             </tr>
                                         </thead>
-                                        <tbody id="availableSubjects">
+                                        <tbody id="enrolledSubjects">
                                             {% for subject in subjects %}
                                             <tr>
                                                 <td>{{ subject.Sub_code }}</td>
                                                 <td>{{ subject.subject_name }}</td>
                                                 <td>{{ subject.day_of_week }} {{ subject.start_time }}-{{ subject.end_time }}</td>
-                                                <td>{{ subject.room }}</td>
                                                 <td>{{ subject.units }}</td>
                                                 <td>
-                                                    <button class="btn btn-primary btn-sm"
-                                                            onclick="enlistSubject({{ subject.sub_avail_id }}, '{{ subject.subject_name }}')">
-                                                        Enlist
+                                                    <button class="btn btn-danger btn-sm rounded-pill" onclick="dropSubject({{ subject.sub_avail_id }})">
+                                                        <i class="fas fa-times"></i> Drop
                                                     </button>
-                                                </td>
-                                                <td>
-                                                    <span class="badge bg-success">Available</span>
                                                 </td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td colspan="3" class="text-end"><strong>Total Units:</strong></td>
+                                                <td id="totalUnits">0</td>
+                                                <td></td>
+                                            </tr>
+                                        </tfoot>
                                     </table>
                                 </div>
                             </div>
@@ -157,7 +110,76 @@
                 </div>
             </div>
 
-    <!-- Add Bootstrap JS before the closing body tag -->
+            <!-- Right Column -->
+            <div class="col-md-8">
+                <!-- Available Subjects Card -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center bg-white border-0" style="border-radius:22px 22px 0 0;">
+                        <h5 style="font-weight:700;letter-spacing:0.01em;">Available Subjects</h5>
+                        <div class="d-flex gap-2 align-items-center">
+                            <div class="input-group">
+                                <input type="text" 
+                                    id="subjectSearch" 
+                                    class="form-control"
+                                    style="border-radius:999px;"
+                                    placeholder="Search subject code or name..."
+                                    oninput="filterSubjects(this.value)">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Subject</th>
+                                        <th>Schedule</th>
+                                        <th>Room</th>
+                                        <th>Units</th>
+                                        <th>Action</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="availableSubjects">
+                                    {% for subject in subjects %}
+                                    <tr>
+                                        <td>{{ subject.Sub_code }}</td>
+                                        <td>{{ subject.subject_name }}</td>
+                                        <td>{{ subject.day_of_week }} {{ subject.start_time }}-{{ subject.end_time }}</td>
+                                        <td>{{ subject.room }}</td>
+                                        <td>{{ subject.units }}</td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm rounded-pill"
+                                                    onclick="enlistSubject({{ subject.sub_avail_id }}, '{{ subject.subject_name }}')">
+                                                Enlist
+                                            </button>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success">Available</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Fill avatar with first letter of student name
+    document.addEventListener("DOMContentLoaded", function() {
+        const nameEl = document.getElementById("studentName");
+        const avatarEl = document.getElementById("studentAvatar");
+        if (nameEl && avatarEl) {
+            const name = nameEl.textContent.trim();
+            avatarEl.textContent = name ? name[0].toUpperCase() : "";
+        }
+    });
+    </script>
     <script src="{{ url_for('static', filename='js/instructor_dashboard.js') }}"></script>
 </body>
 </html>
