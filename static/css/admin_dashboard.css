@@ -132,7 +132,7 @@ body {
 }
 
 tr:hover {
-    background: #fdf6fa;
+    background-color: #fdf6fa;
 }
 
 /* Buttons */
@@ -327,9 +327,8 @@ table.dataTable td {
     border: 1px solid #444;
 }
 .subject-card:hover {
-    transform: translateY(-4px) scale(1.03);
-    box-shadow: 0 8px 24px #0004;
-    background: #292929;
+    background: #333;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 .subject-card-header {
     padding: 20px 18px 12px 18px;

@@ -63,7 +63,7 @@ body {
 }
 
 .student-table tbody tr:hover {
-    background: #fdf6fa;
+    background-color: #fdf6fa;
 }
 
 .info-button {
@@ -80,7 +80,6 @@ body {
 
 .info-button:hover {
     background: linear-gradient(90deg, #dd2a7b 0%, #f58529 80%);
-    transform: translateY(-2px) scale(1.03);
 }
 
 .modal {
@@ -155,8 +154,8 @@ body {
     overflow: hidden;
 }
 .student-card:hover {
-    transform: translateY(-4px) scale(1.03);
-    box-shadow: 0 8px 24px #0004;
+    background: #333;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 .student-card.expanded {
     z-index: 10;

@@ -22,64 +22,31 @@ tr[style="display: none;"] {
     border-radius: 2px;
 }
 :root {
-    --primary-color: #e1306c; /* Instagram pink */
-    --secondary-color: #fafafa;
-    --accent-color: #405de6; /* Instagram blue */
-    --gradient-start: #fdf497;
-    --gradient-mid: #fd5949;
-    --gradient-end: #d6249f;
-    --gradient-blue: #285AEB;
-    --card-radius: 22px;
-    --avatar-size: 48px;
-    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    --primary-color: #4a90e2;
+    --secondary-color: #f5f6fa;
+    --accent-color: #5352ed;
 }
 
 body {
-    background: linear-gradient(120deg, var(--gradient-start) 0%, var(--gradient-mid) 50%, var(--gradient-end) 100%);
-    min-height: 100vh;
-    font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--secondary-color);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
 .navbar {
     background: white;
-    border-radius: 0 0 24px 24px;
-    box-shadow: var(--shadow);
-    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .card {
     border: none;
-    border-radius: var(--card-radius);
-    box-shadow: var(--shadow);
-    transition: transform 0.2s, box-shadow 0.2s;
-    background: white;
-}
-
-.card:hover {
-    transform: translateY(-2px) scale(1.01);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
 }
 
 .search-container {
     position: relative;
     margin-bottom: 1.5rem;
-}
-
-.input-group .form-control {
-    border-radius: 999px;
-    background: #f1f1f1;
-    border: none;
-    padding-left: 1.2em;
-}
-
-.input-group .form-control:focus {
-    background: #fff;
-    box-shadow: 0 0 0 2px var(--primary-color, #e1306c, 0.15);
-}
-
-.input-group .btn-outline-secondary {
-    border-radius: 999px;
-    border: none;
 }
 
 .search-results-list {
@@ -88,207 +55,122 @@ body {
     left: 0;
     right: 0;
     background: white;
-    border-radius: 18px;
-    box-shadow: var(--shadow);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     z-index: 1000;
-    max-height: 320px;
+    max-height: 300px;
     overflow-y: auto;
-    border: 1px solid #eee;
+    border: 1px solid #dee2e6;
     padding: 8px;
 }
 
 .search-item {
-    padding: 12px 18px;
-    border-bottom: 1px solid #f1f1f1;
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
     transition: background-color 0.2s;
     cursor: pointer;
     margin-bottom: 8px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.search-item:hover {
+    background-color: rgba(74, 144, 226, 0.1);
 }
 
 .search-item:last-child {
     border-bottom: none;
 }
 
-.search-item:hover {
-    background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
-    color: #fff;
-}
-
 .btn-primary {
-    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    background-color: var(--primary-color);
     border: none;
-    border-radius: 999px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    transition: background 0.2s;
 }
 
 .btn-primary:hover {
-    background: linear-gradient(90deg, var(--accent-color), var(--primary-color));
-}
-
-.btn-danger {
-    border-radius: 999px;
+    background-color: var(--accent-color);
 }
 
 .table {
     background: white;
-    border-radius: 18px;
+    border-radius: 8px;
     overflow: hidden;
-    box-shadow: var(--shadow);
 }
 
 .table thead th {
-    background: #f7f7f7;
+    background-color: var(--secondary-color);
     border-bottom: none;
-    font-weight: 600;
-    color: #555;
-}
-
-.table td, .table th {
-    vertical-align: middle;
 }
 
 .student-card {
     background: white;
-    border-radius: var(--card-radius);
-    box-shadow: var(--shadow);
-    transition: all 0.2s;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
     cursor: pointer;
-    margin-bottom: 1.5rem;
-    padding: 1.5rem 1.2rem;
-    display: flex;
-    align-items: center;
-    gap: 1.2rem;
 }
 
 .student-card:hover {
-    background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
-    color: #fff;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-}
-
-.student-avatar {
-    width: var(--avatar-size);
-    height: var(--avatar-size);
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-blue));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.7rem;
-    color: #fff;
-    font-weight: bold;
-    margin-right: 1rem;
-    flex-shrink: 0;
+    background-color: var(--secondary-color);
+    transform: translateX(4px);
 }
 
 .student-info {
-    flex: 1;
-    padding: 0;
-    background: transparent;
-}
-
-.student-info h6, .student-info p {
-    margin: 0;
-    color: inherit;
-}
-
-.student-info h6 {
-    font-size: 1.1rem;
-    font-weight: 700;
-}
-
-.student-info .mb-0 {
-    font-size: 0.97rem;
-    color: #888;
+    padding: 1.5rem;
+    background: var(--secondary-color);
 }
 
 .enrolled-subjects {
-    padding: 1.2rem 0 0 0;
+    padding: 1.5rem;
 }
 
-.subject-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.student-search-item {
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.student-search-item:hover {
+    background-color: var(--secondary-color);
+    transform: translateX(4px);
+}
+
+.student-clickable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.student-info-preview {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.subject-item {
-    background: #f1f1f1;
-    border-radius: 999px;
-    padding: 0.3em 1em;
-    font-size: 0.95em;
-    color: #555;
+.expand-icon {
+    transition: transform 0.3s ease;
 }
 
-.subject-item.text-muted {
-    background: #f7f7f7;
-    color: #bbb;
+.student-info-header {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
-.badge.bg-success {
-    background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
-    color: #fff;
-    border-radius: 999px;
-    font-weight: 500;
-    font-size: 0.95em;
-    padding: 0.4em 1em;
+.student-info-header:hover {
+    background-color: var(--secondary-color);
 }
 
-.badge.bg-danger {
-    background: linear-gradient(90deg, #fa709a 0%, #fee140 100%);
-    color: #fff;
-    border-radius: 999px;
-    font-weight: 500;
-    font-size: 0.95em;
-    padding: 0.4em 1em;
-}
-
-.letter-btn {
-    border: none;
-    background: #fff;
-    color: var(--primary-color);
-    border-radius: 999px;
-    padding: 0.4em 1.2em;
-    margin: 0 0.1em;
-    font-weight: 600;
-    transition: background 0.2s, color 0.2s;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
-.letter-btn.active, .letter-btn:hover {
-    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
-    color: #fff;
-}
-
-::-webkit-scrollbar {
-    width: 8px;
-    background: #f1f1f1;
-    border-radius: 8px;
-}
-::-webkit-scrollbar-thumb {
-    background: #e1e1e1;
-    border-radius: 8px;
-}
-
-@media (max-width: 768px) {
-    .student-card {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 1rem 0.7rem;
-    }
-    .student-avatar {
-        margin-bottom: 0.7rem;
-    }
-    .enrolled-subjects {
-        padding: 1rem 0 0 0;
-    }
+.expanded-content {
+    background-color: #f8f9fa;
+    border-radius: 0 0 8px 8px;
+    transition: all 0.3s ease;
 }

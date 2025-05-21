@@ -17,9 +17,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/student_list.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/available_sub.css') }}">
 
-    <style>
-        
-    </style>
 </head>
 <body>
     <!-- Sidebar -->
@@ -70,17 +67,18 @@
         <!-- Content -->
         <div class="content">
             {% block content %}
-            <!-- Main Content Here -->
+            
             {% endblock %}
         </div>
     </div>
-
+    
+    {% block scripts %}
     <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/dataTables.bootstrap5.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/admin_dashboard.js') }}"></script>
-    {% block scripts %}{% endblock %}
+    {% endblock %}
 </body>
 </html>

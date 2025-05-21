@@ -6,7 +6,6 @@ body {
     }
 
     .glass-card, .card {
-        background: #fff;
         border-radius: 24px;
         box-shadow: 0 4px 32px 0 rgba(221,42,123,0.10);
         border: none;
@@ -45,13 +44,6 @@ body {
     }
 
     .table-row-hover {
-        transition: all 0.3s ease;
-    }
-
-    .table-row-hover:hover {
-        transform: scale(1.01);
-        background: #fdf6fa;
-        box-shadow: 0 0 20px #f5852922;
     }
 
     .status-badge {
