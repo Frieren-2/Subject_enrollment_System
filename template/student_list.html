@@ -82,8 +82,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
-<script>
-
-</script>
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/student_list.js') }}" defer></script>
 {% endblock %}
