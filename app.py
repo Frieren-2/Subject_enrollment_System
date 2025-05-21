@@ -52,8 +52,35 @@ def register():
     message = ''
     accounts = []
 
+    # Handle AJAX (JSON) registration
     if request.method == 'POST':
-        if 'update_password' in request.form:
+        if request.is_json:
+            data = request.get_json()
+            name = data.get('name')
+            username = data.get('username')
+            password = data.get('password')
+            confirm_password = data.get('confirm_password')
+            usertype = "instructor"
+
+            if not all([name, username, password, confirm_password]):
+                return jsonify({'success': False, 'message': 'Please fill out all fields.'}), 400
+            elif password != confirm_password:
+                return jsonify({'success': False, 'message': 'Passwords do not match.'}), 400
+            else:
+                cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+                cursor.execute('SELECT * FROM admin WHERE username = %s', (username,))
+                existing = cursor.fetchone()
+                if existing:
+                    cursor.close()
+                    return jsonify({'success': False, 'message': 'Account already exists!'}), 409
+                cursor.execute(
+                    'INSERT INTO admin (name, username, password, usertype) VALUES (%s, %s, %s, %s)',
+                    (name, username, password, usertype)
+                )
+                mysql.connection.commit()
+                cursor.close()
+                return jsonify({'success': True, 'message': 'Account registered successfully!'})
+        elif 'update_password' in request.form:
             # Handle password update
             username = request.form.get('username')
             new_password = request.form.get('new_password')

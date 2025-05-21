@@ -21,23 +21,31 @@ document.addEventListener("DOMContentLoaded", function () {
     .getElementById("registerForm")
     .addEventListener("submit", function (e) {
       e.preventDefault();
-      if (password.value !== confirmPassword.value) return;
-
-      const name = document.getElementById("name").value.trim();
-      const username = document.getElementById("username").value.trim();
+      const name = this.name.value.trim();
+      const username = this.username.value.trim();
       const pwd = password.value;
+      const confirm_pwd = confirmPassword.value;
 
-      // Get instructors from localStorage
-      let instructors = JSON.parse(localStorage.getItem("instructors") || "[]");
-      // Check for duplicate username
-      if (instructors.some((i) => i.username === username)) {
-        alert("Username already exists!");
-        return;
-      }
-      instructors.push({ name, username, password: pwd });
-      localStorage.setItem("instructors", JSON.stringify(instructors));
-      alert("Instructor registered!");
-      this.reset();
+      fetch("/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          username,
+          password: pwd,
+          confirm_password: confirm_pwd,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            alert("Registration successful!");
+            window.location.reload();
+          } else {
+            alert(data.message || "Registration failed.");
+          }
+        })
+        .catch(() => alert("Registration failed."));
     });
 
   // Show modal with instructor list and actions (fetch from backend)
