@@ -42,122 +42,120 @@
                                        placeholder="Search student name..."
                                        autocomplete="off"
                                        oninput="filterStudents(this.value)">
-                                <button class="btn btn-primary" type="button" onclick="searchStudentByName()">
-                                    <i class="fas fa-search"></i> Search
-                                </button>
-                            </div>
-                            <div id="searchResults" class="search-results-list d-none">
-                                <!-- Search results will be populated here -->
-                            </div>
-                        </div>
-                        <div id="selectedStudent" class="d-none">
-                            <div class="student-card">
-                                <div class="student-info p-3">
-                                    <h6 id="studentName">Student Name</h6>
-                                    <p class="mb-0" id="studentDetails">Course & Year</p>
+                                    </div>
+                                    <div id="searchResults" class="search-results-list d-none">
+                                        <!-- Search results will be populated here -->
+                                    </div>
                                 </div>
-                                <div class="enrolled-subjects p-3 border-top">
-                                    <h6>Enrolled Subjects</h6>
-                                    <div class="table-responsive">
-                                        <table class="table table-sm">
-                                            <thead>
-                                                <tr>
-                                                    <th>Code</th>
-                                                    <th>Subject</th>
-                                                    <th>Schedule</th>
-                                                    <th>Units</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="enrolledSubjects">
-                                                {% for subject in subjects %}
-                                                <tr>
-                                                    <td>{{ subject.Sub_code }}</td>
-                                                    <td>{{ subject.subject_name }}</td>
-                                                    <td>{{ subject.day_of_week }} {{ subject.start_time }}-{{ subject.end_time }}</td>
-                                                    <td>{{ subject.room }}</td>
-                                                    <td>{{ subject.units }}</td>
-                                                    <td>
-                                                        <button class="btn btn-danger btn-sm" onclick="dropSubject({{ subject.sub_avail_id }})">
-                                                            <i class="fas fa-times"></i> Drop
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                            <tfoot>
-                                                <tr>
-                                                    <td colspan="3" class="text-end"><strong>Total Units:</strong></td>
-                                                    <td id="totalUnits">0</td>
-                                                    <td></td>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
+                                <div id="selectedStudent" class="d-none">
+                                    <div class="student-card">
+                                        <div class="student-info p-3">
+                                            <h6 id="studentName">Student Name</h6>
+                                            <p class="mb-0" id="studentDetails">Course & Year</p>
+                                            <p class="mb-0" id="studentProgram"><strong>Program:</strong> <span id="studentProgramValue"></span></p>
+                                        </div>
+                                        <div class="enrolled-subjects p-3 border-top">
+                                            <h6>Enrolled Subjects</h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Code</th>
+                                                            <th>Subject</th>
+                                                            <th>Schedule</th>
+                                                            <th>Units</th>
+                                                            <th>Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="enrolledSubjects">
+                                                        {% for subject in subjects %}
+                                                        <tr>
+                                                            <td>{{ subject.Sub_code }}</td>
+                                                            <td>{{ subject.subject_name }}</td>
+                                                            <td>{{ subject.day_of_week }} {{ subject.start_time }}-{{ subject.end_time }}</td>
+                                                            <td>{{ subject.room }}</td>
+                                                            <td>{{ subject.units }}</td>
+                                                            <td>
+                                                                <button class="btn btn-danger btn-sm" onclick="dropSubject({{ subject.sub_avail_id }})">
+                                                                    <i class="fas fa-times"></i> Drop
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <td colspan="3" class="text-end"><strong>Total Units:</strong></td>
+                                                            <td id="totalUnits">0</td>
+                                                            <td></td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Right Column -->
-            <div class="col-md-8">
-                <!-- Available Subjects Card -->
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5>Available Subjects</h5>
-                        <div class="d-flex gap-2 align-items-center">
-                            <div class="input-group">
-                                <input type="text" 
-                                       id="subjectSearch" 
-                                       class="form-control" 
-                                       placeholder="Search subject code or name..."
-                                       oninput="filterSubjects(this.value)">
+                    <!-- Right Column -->
+                    <div class="col-md-8">
+                        <!-- Available Subjects Card -->
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Available Subjects</h5>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <div class="input-group">
+                                        <input type="text" 
+                                            id="subjectSearch" 
+                                            class="form-control" 
+                                            placeholder="Search subject code or name..."
+                                            oninput="filterSubjects(this.value)">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Code</th>
+                                                <th>Subject</th>
+                                                <th>Schedule</th>
+                                                <th>Room</th>
+                                                <th>Units</th>
+                                                <th>Action</th>
+                                                <th>Status</th>  <!-- Add status column -->
+                                            </tr>
+                                        </thead>
+                                        <tbody id="availableSubjects">
+                                            {% for subject in subjects %}
+                                            <tr>
+                                                <td>{{ subject.Sub_code }}</td>
+                                                <td>{{ subject.subject_name }}</td>
+                                                <td>{{ subject.day_of_week }} {{ subject.start_time }}-{{ subject.end_time }}</td>
+                                                <td>{{ subject.room }}</td>
+                                                <td>{{ subject.units }}</td>
+                                                <td>
+                                                    <button class="btn btn-primary btn-sm"
+                                                            onclick="enlistSubject({{ subject.sub_avail_id }}, '{{ subject.subject_name }}')">
+                                                        Enlist
+                                                    </button>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-success">Available</span>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Code</th>
-                                        <th>Subject</th>
-                                        <th>Schedule</th>
-                                        <th>Room</th>
-                                        <th>Units</th>
-                                        <th>Action</th>
-                                        <th>Status</th>  <!-- Add status column -->
-                                    </tr>
-                                </thead>
-                                <tbody id="availableSubjects">
-                                    {% for subject in subjects %}
-                                    <tr>
-                                        <td>{{ subject.Sub_code }}</td>
-                                        <td>{{ subject.subject_name }}</td>
-                                        <td>{{ subject.day_of_week }} {{ subject.start_time }}-{{ subject.end_time }}</td>
-                                        <td>{{ subject.room }}</td>
-                                        <td>{{ subject.units }}</td>
-                                        <td>
-                                            <button class="btn btn-primary btn-sm"
-                                                    onclick="enlistSubject({{ subject.sub_avail_id }}, '{{ subject.subject_name }}')">
-                                                Enlist
-                                            </button>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-success">Available</span>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                 </div>
             </div>
-        </div>
-    </div>
 
     <!-- Add Bootstrap JS before the closing body tag -->
     <script src="{{ url_for('static', filename='js/instructor_dashboard.js') }}"></script>

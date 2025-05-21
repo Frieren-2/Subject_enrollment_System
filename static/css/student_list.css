@@ -93,12 +93,17 @@ body {
     background: rgba(221,42,123,0.15);
 }
 
+.modal-dialog {
+    max-width: 900px !important;
+    width: 90% !important;
+}
+
 .modal-content {
     background: #fff;
     margin: 8% auto;
     padding: 32px;
-    width: 70%;
-    max-width: 600px;
+    width: 100% !important;
+    max-width: none !important;
     border-radius: 24px;
     box-shadow: 0 4px 24px #dd2a7b11;
 }
@@ -119,4 +124,95 @@ body {
 .not-enrolled {
     color: #ef4444;
     font-weight: bold;
+}
+
+@media (max-width: 900px) {
+    .modal-dialog {
+        max-width: 98vw !important;
+        width: 98vw !important;
+    }
+    .modal-content {
+        padding: 12px !important;
+    }
+}
+.student-card-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    justify-content: flex-start;
+}
+.student-card {
+    background: #2d2d2d;
+    color: #fff;
+    border-radius: 18px;
+    box-shadow: 0 2px 8px #0002;
+    width: calc(20% - 20px); /* 5 in a row with gap */
+    min-width: 220px;
+    margin-bottom: 24px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+.student-card:hover {
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 8px 24px #0004;
+}
+.student-card.expanded {
+    z-index: 10;
+    width: 100%;
+    min-width: 0;
+    flex-basis: 100%;
+    box-shadow: 0 12px 32px #0007;
+    transform: scale(1.01);
+}
+.student-card-header {
+    padding: 20px 18px 12px 18px;
+    border-bottom: 1px solid #444;
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.student-card-header .program {
+    font-size: 0.95rem;
+    color: #f39c12;
+    font-weight: 400;
+}
+.student-card-header .units {
+    font-size: 0.9rem;
+    color: #aaa;
+}
+.student-card-content {
+    display: none;
+    padding: 18px;
+    background: #232323;
+    animation: fadeIn 0.3s;
+}
+.student-card.expanded .student-card-content {
+    display: block;
+}
+.student-card-close {
+    position: absolute;
+    top: 10px;
+    right: 18px;
+    color: #f39c12;
+    font-size: 1.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 2;
+}
+@media (max-width: 1200px) {
+    .student-card { width: calc(25% - 20px); }
+}
+@media (max-width: 900px) {
+    .student-card { width: calc(33.33% - 20px); }
+}
+@media (max-width: 700px) {
+    .student-card { width: calc(50% - 20px); }
+}
+@media (max-width: 500px) {
+    .student-card { width: 100%; }
 }

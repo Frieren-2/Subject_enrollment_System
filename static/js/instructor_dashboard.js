@@ -1117,6 +1117,15 @@ function fetchStudentDetails(usn) {
       console.log("Received student data:", data); // Debug log
 
       if (data.success) {
+        // Update program (course) in the UI
+        document.getElementById("studentProgramValue").textContent =
+          data.student.course || "";
+        // Optionally update year and details
+        document.getElementById("studentDetails").textContent = data.student
+          .year
+          ? `${data.student.course} - ${data.student.year}`
+          : data.student.course || "";
+
         updateEnrolledSubjects(data.enrolled_subjects || []);
         document.getElementById("selectedStudent").classList.remove("d-none");
       } else {
@@ -1127,4 +1136,11 @@ function fetchStudentDetails(usn) {
       console.error("Error:", error);
       alert("Error loading student details: " + error.message);
     });
+}
+ // Example: When you fetch student info via AJAX, set the course/program value
+ function showStudentInfo(student) {
+  document.getElementById('studentName').textContent = student.name;
+  document.getElementById('studentDetails').textContent = student.year ? (student.course + ' - ' + student.year) : (student.course || '');
+  document.getElementById('studentProgramValue').textContent = student.course || '';
+  // ...populate other fields...
 }

@@ -240,9 +240,9 @@ def get_student():
 
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         
-        # Get student details
+        # Get student details (make sure to fetch 'course')
         cursor.execute("""
-            SELECT student_id, USN, name 
+            SELECT student_id, USN, name, course, year
             FROM student 
             WHERE USN = %s OR name LIKE %s
         """, (student_search, f'%{student_search}%'))
@@ -269,7 +269,6 @@ def get_student():
         """, (student['student_id'],))
         
         enrolled_subjects = cursor.fetchall()
-        
         # Convert time objects to strings
         for subject in enrolled_subjects:
             subject['start_time'] = str(subject['start_time'])
@@ -280,7 +279,9 @@ def get_student():
             'student': {
                 'student_id': student['student_id'],
                 'usn': student['USN'],
-                'name': student['name']
+                'name': student['name'],
+                'course': student.get('course', ''),
+                'year': student.get('year', '')
             },
             'enrolled_subjects': enrolled_subjects
         })
@@ -440,47 +441,37 @@ def get_available_subjects():
         if 'cursor' in locals():
             cursor.close()
     
-        
-
-@app.route('/student_list')
-def student_list():
-    if 'usertype' in session and session['usertype'] == 'admin':
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT * FROM student')
-        student = cursor.fetchall()
-        cursor.close()
-        return render_template('student_list.html', students=student)
-    return redirect(url_for('login'))
-
-@app.route('/subject_list')
-def subject_list():
-    if 'usertype' in session and session['usertype'] == 'admin':
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT * FROM subjects')
-        subjects = cursor.fetchall()
-        cursor.close()
-        return render_template('subject_list.html', subjects=subjects)
-    return redirect(url_for('login'))
-
+    
 
 @app.route('/get_enrolled_subjects/<int:student_id>')
 def get_enrolled_subjects(student_id):
-    # Replace with your actual database query
-    cursor = mysql.connection.cursor(dictionary=True)
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     query = """
-        SELECT e.subject_id, s.Sub_code, s.subject_name, 
-               sa.day_of_week, sa.start_time, sa.end_time, 
-               sa.room, s.units
-        FROM enrollments e
-        JOIN subject_availability sa ON e.subj_avail_id = sa.subj_avail_id
-        JOIN subjects s ON sa.Sub_code = s.Sub_code
-        WHERE e.student_id = %s
+        SELECT 
+            sa.Sub_code,
+            s.subject as subject_name,
+            sa.units,
+            sa.day_of_week,
+            TIME_FORMAT(sa.start_time, '%%H:%%i') as start_time,
+            TIME_FORMAT(sa.end_time, '%%H:%%i') as end_time,
+            sa.room
+        FROM student_subject ss
+        JOIN subj_avail sa ON ss.subj_avail_id = sa.sub_avail_id
+        JOIN subject s ON sa.subject_id = s.subject_id
+        WHERE ss.student_id = %s
     """
     cursor.execute(query, (student_id,))
     subjects = cursor.fetchall()
     cursor.close()
-    
-    return jsonify({'subjects': subjects})
+
+    # Calculate total units
+    total_units = sum(float(subj['units']) for subj in subjects if subj['units'] is not None)
+
+    return jsonify({
+        'subjects': subjects,
+        'total_units': total_units,
+        'conflicts': []
+    })
 
 @app.route('/drop_subject/<int:subject_id>', methods=['POST'])
 def drop_subject(subject_id):
@@ -527,12 +518,14 @@ def search_students():
         
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         
-        # Updated query to match actual database columns
+        # Updated query to match actual database columns and fetch course
         cursor.execute("""
             SELECT 
                 student_id,
                 USN,
-                name
+                name,
+                course,
+                year
             FROM student 
             WHERE 
                 name LIKE %s OR
@@ -670,6 +663,51 @@ def api_update_instructor_password():
     mysql.connection.commit()
     cursor.close()
     return jsonify({'success': True})
+
+
+@app.route('/student_list')
+def student_list():
+    if 'usertype' in session and session['usertype'] == 'admin':
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('SELECT * FROM student')
+        students = cursor.fetchall()
+
+        # For each student, fetch enrolled subjects and total units
+        for student in students:
+            sub_cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            sub_cursor.execute("""
+                SELECT 
+                    sa.Sub_code,
+                    s.subject as subject_name,
+                    sa.units,
+                    sa.day_of_week,
+                    TIME_FORMAT(sa.start_time, '%%H:%%i') as start_time,
+                    TIME_FORMAT(sa.end_time, '%%H:%%i') as end_time,
+                    sa.room
+                FROM student_subject ss
+                JOIN subj_avail sa ON ss.subj_avail_id = sa.sub_avail_id
+                JOIN subject s ON sa.subject_id = s.subject_id
+                WHERE ss.student_id = %s
+            """, (student['student_id'],))
+            enrolled_subjects = sub_cursor.fetchall()
+            sub_cursor.close()
+            student['enrolled_subjects'] = enrolled_subjects
+            student['total_units'] = sum(float(subj['units']) for subj in enrolled_subjects if subj['units'] is not None)
+
+        cursor.close()
+        return render_template('student_list.html', students=students)
+    return redirect(url_for('login'))
+
+@app.route('/subject_list')
+def subject_list():
+    if 'usertype' in session and session['usertype'] == 'admin':
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('SELECT * FROM subjects')
+        subjects = cursor.fetchall()
+        cursor.close()
+        return render_template('subject_list.html', subjects=subjects)
+    return redirect(url_for('login'))
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=81)

@@ -82,6 +82,7 @@ body {
     border-radius: 999px;
     font-weight: 500;
     transition: background 0.2s, color 0.2s;
+    position: relative;
 }
 
 .nav-link:hover,
@@ -89,6 +90,17 @@ body {
     background: linear-gradient(90deg, #f58529 0%, #dd2a7b 80%);
     color: #fff;
     box-shadow: 0 2px 8px #dd2a7b22;
+    font-weight: 700;
+}
+
+.nav-link.active {
+    /* Add a left border accent and a subtle shadow for active state */
+    box-shadow: 0 4px 16px #dd2a7b33;
+    border-left: 6px solid #f58529;
+    background: linear-gradient(90deg, #f58529 0%, #dd2a7b 90%);
+    color: #fff;
+    font-weight: 800;
+    z-index: 1;
 }
 
 /* Main Content */
@@ -203,4 +215,167 @@ tr:hover {
     .table-container, .card {
         padding: 1rem;
     }
+}
+body {
+    display: flex;
+    min-height: 100vh;
+    background-color: #121212; /* Darker background for better contrast */
+    color: #e1e1e1; /* Light text for readability */
+}
+.sidebar {
+    width: 250px;
+    background-color: #1e1e1e; /* Slightly lighter than body for subtle separation */
+    padding: 20px;
+    min-height: 100vh;
+    border-right: 1px solid #444; /* Dark border for better separation */
+}
+.sidebar .nav-link {
+    color: #b3b3b3;
+    font-size: 1.1em;
+    margin: 10px 0;
+    transition: color 0.3s;
+}
+.sidebar .nav-link:hover {
+    color: #fff; /* Highlight on hover */
+}
+.sidebar .nav-link.active {
+    color: #b3b3b3; /* Remove gold, use default sidebar link color */
+}
+.sidebar .nav-item i {
+    font-size: 1.3em;
+    margin-right: 10px;
+}
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #181818; /* Dark theme for content area */
+}
+.topnav {
+    background-color: #242424; /* Darker navbar */
+    padding: 10px 20px;
+    border-bottom: 1px solid #444;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+}
+.topnav h5 {
+    font-weight: bold;
+    margin: 0;
+}
+.topnav .username {
+    display: flex;
+    align-items: center;
+}
+.topnav .username span {
+    margin-right: 10px;
+}
+.topnav i {
+    font-size: 24px;
+    color: #f8f9fa;
+}
+.content {
+    padding: 20px;
+    flex-grow: 1;
+    background-color: #1a1a1a; /* Dark content area */
+}
+/* Additional styling for hover effects in links */
+.nav-item {
+    transition: transform 0.2s ease;
+}
+.nav-item:hover {
+    transform: scale(1.05);
+}
+/* Table styling */
+table.dataTable {
+    background-color: #2d2d2d;
+    color: #f1f1f1;
+}
+table.dataTable th,
+table.dataTable td {
+    padding: 12px 15px;
+    text-align: center;
+}
+/* Button styling */
+.btn-primary {
+    background-color: #f39c12;
+    border-color: #f39c12;
+}
+.btn-primary:hover {
+    background-color: #e67e22;
+    border-color: #e67e22;
+}
+.subject-card-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    justify-content: flex-start;
+}
+.subject-card {
+    background: #232323;
+    color: #fff;
+    border-radius: 18px;
+    box-shadow: 0 2px 8px #0002;
+    width: calc(20% - 20px); /* 5 in a row with gap */
+    min-width: 220px;
+    margin-bottom: 24px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #444;
+}
+.subject-card:hover {
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 8px 24px #0004;
+    background: #292929;
+}
+.subject-card-header {
+    padding: 20px 18px 12px 18px;
+    border-bottom: 1px solid #444;
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.subject-card-header .subject-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #f39c12;
+}
+.subject-card-header .subject-code {
+    font-size: 0.95rem;
+    color: #aaa;
+    font-weight: 400;
+}
+.subject-card-header .subject-course {
+    font-size: 0.95rem;
+    color: #10b981;
+    font-weight: 400;
+}
+.subject-card-header .subject-units {
+    font-size: 0.9rem;
+    color: #b3b3b3;
+}
+.subject-card-header .subject-year {
+    font-size: 0.9rem;
+    color: #b3b3b3;
+}
+.subject-card-header .subject-semester {
+    font-size: 0.9rem;
+    color: #b3b3b3;
+}
+@media (max-width: 1200px) {
+    .subject-card { width: calc(25% - 20px); }
+}
+@media (max-width: 900px) {
+    .subject-card { width: calc(33.33% - 20px); }
+}
+@media (max-width: 700px) {
+    .subject-card { width: calc(50% - 20px); }
+}
+@media (max-width: 500px) {
+    .subject-card { width: 100%; }
 }
